@@ -16,6 +16,7 @@ export const Navbar = () => {
     { name: "Experience", href: "/#experience" },
     { name: "Projects", href: "/#projects" },
     { name: "Contact", href: "/#contact" },
+    { name: "Blog", href: "/blog" }, // Link Blog ditambahkan di sini
   ];
 
   useEffect(() => {
@@ -67,22 +68,37 @@ export const Navbar = () => {
       {/* Desktop Links */}
       <div className="hidden md:flex space-x-10">
         {navLinks.map((link) => {
-          const isActive = link.href.substring(2) === activeSection;
+          const isBlog = link.href === "/blog";
+          // Cek aktif: nyala saat di home sesuai scroll, atau nyala saat buka /blog
+          const isActive = isBlog 
+            ? location.pathname === "/blog" 
+            : link.href.substring(2) === activeSection && location.pathname === "/";
+
+          const linkClasses = `relative font-mono text-[11px] font-normal uppercase tracking-[0.15em] transition-colors duration-250 group ${
+            isActive ? "text-white" : "text-[#808080] hover:text-white"
+          }`;
+
+          const spanClasses = `absolute -bottom-1 left-0 w-full h-[1px] bg-white transition-transform duration-250 ease-out origin-center ${
+            isActive ? "scale-x-100" : "scale-x-0 group-hover:scale-x-100"
+          }`;
+
+          if (isBlog) {
+            return (
+              <Link key={link.name} to={link.href} className={linkClasses}>
+                {link.name}
+                <span className={spanClasses}></span>
+              </Link>
+            );
+          }
 
           return (
             <a
               key={link.name}
               href={link.href}
-              className={`relative font-mono text-[11px] font-normal uppercase tracking-[0.15em] transition-colors duration-250 group ${
-                isActive ? "text-white" : "text-[#808080] hover:text-white"
-              }`}
+              className={linkClasses}
             >
               {link.name}
-              <span
-                className={`absolute -bottom-1 left-0 w-full h-[1px] bg-white transition-transform duration-250 ease-out origin-center ${
-                  isActive ? "scale-x-100" : "scale-x-0 group-hover:scale-x-100"
-                }`}
-              ></span>
+              <span className={spanClasses}></span>
             </a>
           );
         })}
@@ -113,19 +129,42 @@ export const Navbar = () => {
               <X size={24} />
             </button>
             <div className="flex flex-col gap-6 items-center">
-              {navLinks.map((link, i) => (
-                <motion.a
-                  key={link.name}
-                  href={link.href}
-                  onClick={() => setMobileMenuOpen(false)}
-                  initial={{ opacity: 0, y: 20 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ delay: i * 0.05 + 0.1, duration: 0.4 }}
-                  className="font-display font-bold text-3xl text-white hover:text-[var(--color-accent)] transition-colors"
-                >
-                  {link.name}
-                </motion.a>
-              ))}
+              {navLinks.map((link, i) => {
+                const isBlog = link.href === "/blog";
+
+                if (isBlog) {
+                  return (
+                    <motion.div
+                      key={link.name}
+                      initial={{ opacity: 0, y: 20 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      transition={{ delay: i * 0.05 + 0.1, duration: 0.4 }}
+                    >
+                      <Link
+                        to={link.href}
+                        onClick={() => setMobileMenuOpen(false)}
+                        className="font-display font-bold text-3xl text-white hover:text-[var(--color-accent)] transition-colors block"
+                      >
+                        {link.name}
+                      </Link>
+                    </motion.div>
+                  );
+                }
+
+                return (
+                  <motion.a
+                    key={link.name}
+                    href={link.href}
+                    onClick={() => setMobileMenuOpen(false)}
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: i * 0.05 + 0.1, duration: 0.4 }}
+                    className="font-display font-bold text-3xl text-white hover:text-[var(--color-accent)] transition-colors"
+                  >
+                    {link.name}
+                  </motion.a>
+                );
+              })}
             </div>
           </motion.div>
         )}

@@ -9,6 +9,7 @@ import { Navbar } from "./components/Navbar";
 import { Footer } from "./components/Footer";
 import { AnimatedBackground } from "./components/ui/AnimatedBackground";
 import { Home } from "./pages/Home";
+import BlogPage from "./pages/BlogPage";
 
 function ScrollToTop() {
   const { pathname } = useLocation();
@@ -29,6 +30,7 @@ export default function App() {
         <main>
           <Routes>
             <Route path="/" element={<Home />} />
+            <Route path="/blog" element={<BlogPage />} /> {/* <-- 2. Tambahkan route ini */}
           </Routes>
         </main>
         <Footer />
@@ -36,4 +38,3 @@ export default function App() {
     </Router>
   );
 }
-
