@@ -1,6 +1,7 @@
 import { motion, useMotionValue, useTransform, useSpring } from "motion/react";
 import { ArrowDownRight, SquareAsterisk } from "lucide-react";
 import { useEffect } from "react";
+import { Link } from "react-router-dom";
 
 export const Hero = () => {
     // Mouse tracking for parallax and 3D effects
@@ -96,13 +97,13 @@ export const Hero = () => {
                             <div className="absolute inset-0 bg-[rgba(255,255,255,0.05)] translate-y-full transition-transform duration-500 ease-[0.16,1,0.3,1] group-hover:translate-y-0"></div>
                         </a>
                         
-                        <a
-                            href="#blog"
+                        <Link
+                            to="/blog"
                             className="group relative inline-flex items-center justify-center bg-transparent border border-[rgba(255,255,255,0.2)] text-[#808080] hover:text-white font-mono text-[12px] font-bold tracking-[0.1em] px-8 py-5 uppercase transition-colors overflow-hidden"
                         >
                             <span className="relative z-10">Blog</span>
                             <div className="absolute inset-0 bg-[rgba(255,255,255,0.05)] translate-y-full transition-transform duration-500 ease-[0.16,1,0.3,1] group-hover:translate-y-0"></div>
-                        </a>
+                        </Link>
                     </motion.div>
                 </motion.div>
 

@@ -30,7 +30,7 @@ export default function App() {
         <main>
           <Routes>
             <Route path="/" element={<Home />} />
-            <Route path="/blog" element={<BlogPage />} /> {/* <-- 2. Tambahkan route ini */}
+            <Route path="/blog" element={<BlogPage />} /> 
           </Routes>
         </main>
         <Footer />
