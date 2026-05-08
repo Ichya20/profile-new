@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { collection, getDocs, query, orderBy } from 'firebase/firestore';
 import { db } from '../firebase'; 
+import { ArrowLeft, BookText } from 'lucide-react';
 
 const BlogPage: React.FC = () => {
   const [journals, setJournals] = useState<any[]>([]);
@@ -12,12 +13,10 @@ const BlogPage: React.FC = () => {
       try {
         const q = query(collection(db, "jurnal"), orderBy("mingguKe", "desc"));
         const querySnapshot = await getDocs(q);
-        
         const data = querySnapshot.docs.map(doc => ({
           id: doc.id,
           ...doc.data()
         }));
-        
         setJournals(data);
       } catch (error) {
         console.error("Error fetching journals: ", error);
@@ -25,147 +24,163 @@ const BlogPage: React.FC = () => {
         setLoading(false);
       }
     };
-
     fetchJournals();
   }, []);
 
-  // Memisahkan logika tampilan agar tidak pakai "nested ternary" yang bikin SonarQube marah
   let content;
   
   if (loading) {
     content = (
-      <div className="max-w-4xl mx-auto text-center py-20">
-        <div className="w-12 h-12 border-4 border-blue-500 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
-        <p className="text-slate-400 font-medium animate-pulse">Mengambil data dari database...</p>
+      <div className="max-w-4xl mx-auto text-center py-32">
+        <div className="w-10 h-10 border-2 border-[var(--color-accent)] border-t-transparent rounded-full animate-spin mx-auto mb-6"></div>
+        <p className="font-mono text-[10px] uppercase tracking-[0.2em] text-[#808080] animate-pulse">
+          Synchronizing Data...
+        </p>
       </div>
     );
   } else if (journals.length === 0) {
     content = (
-      <div className="max-w-4xl mx-auto text-center py-20 bg-white/5 rounded-[2rem] border border-white/10">
-        <p className="text-slate-400 font-medium">Belum ada jurnal yang ditulis.</p>
+      <div className="max-w-4xl mx-auto text-center py-20 border border-white/5 bg-white/[0.02] backdrop-blur-sm">
+        <p className="font-mono text-[11px] uppercase tracking-widest text-[#808080]">No Logs Found in Database.</p>
       </div>
     );
   } else {
     content = (
-      <div className="max-w-4xl mx-auto space-y-12">
+      <div className="max-w-4xl mx-auto space-y-20 pb-20">
         {journals.map((journal) => (
-          <div key={journal.id} className="p-8 rounded-[2rem] bg-white/5 border border-white/10 shadow-lg">
-            
-            <div className="border-b border-white/10 pb-6 mb-6">
-              <h2 className="text-3xl font-bold text-white tracking-tight">
-                Minggu ke-{journal.mingguKe}
-              </h2>
-              <p className="text-slate-400 mt-2 text-sm font-medium">{journal.tanggal}</p>
+          <div key={journal.id} className="relative group">
+            {/* Week Badge */}
+            <div className="absolute -left-4 md:-left-12 top-0 flex flex-col items-center">
+                <span className="font-mono text-[10px] text-[var(--color-accent)] rotate-90 origin-left translate-y-8 uppercase tracking-[0.3em] font-bold">
+                    Week-{journal.mingguKe}
+                </span>
             </div>
 
-            {/* 1. Ringkasan Aktivitas Mingguan */}
-            <div className="mb-8">
-              <h3 className="text-xl font-bold text-blue-400 mb-4 flex items-center gap-2">
-                <span>1️⃣</span> Ringkasan Aktivitas Mingguan
-              </h3>
-              <div className="overflow-x-auto rounded-xl border border-white/10">
-                <table className="w-full text-left text-sm whitespace-nowrap">
-                  <thead className="bg-white/5 uppercase text-[10px] tracking-wider font-black text-slate-300">
-                    <tr>
-                      <th className="p-4 border-b border-white/10">Hari</th>
-                      <th className="p-4 border-b border-white/10">Fokus Aktivitas</th>
-                      <th className="p-4 border-b border-white/10">Output</th>
-                      <th className="p-4 border-b border-white/10">Durasi (jam)</th>
-                    </tr>
-                  </thead>
-                  <tbody className="text-slate-300">
-                    {/* Menggunakan act.hari sebagai key unik menggantikan index */}
-                    {journal.aktivitas?.map((act: any) => (
-                      <tr key={act.hari} className="hover:bg-white/5 transition-colors border-b border-white/5 last:border-0">
-                        <td className="p-4 font-bold">{act.hari}</td>
-                        <td className="p-4">{act.fokus}</td>
-                        <td className="p-4">{act.output}</td>
-                        <td className="p-4 text-center">{act.durasi}</td>
+            <div className="p-8 md:p-12 border border-white/10 bg-white/[0.02] backdrop-blur-md hover:border-[var(--color-accent)]/30 transition-colors duration-500">
+              
+              <div className="mb-10">
+                <h2 className="text-4xl md:text-5xl font-display font-bold text-white tracking-tighter mb-4">
+                  Log_{journal.mingguKe}<span className="text-[var(--color-accent)]">.</span>
+                </h2>
+                <div className="flex items-center gap-4">
+                    <span className="font-mono text-[10px] uppercase tracking-widest text-[#808080] bg-white/5 px-3 py-1">
+                        Status: Published
+                    </span>
+                    <span className="font-mono text-[10px] uppercase tracking-widest text-[#808080]">
+                        {journal.tanggal}
+                    </span>
+                </div>
+              </div>
+
+              {/* 1. Activity Table */}
+              <div className="mb-12">
+                <h3 className="font-mono text-[11px] uppercase tracking-[0.2em] text-white mb-6 flex items-center gap-3">
+                  <span className="w-8 h-[1px] bg-[var(--color-accent)]"></span>
+                  01. Weekly Activity Summary
+                </h3>
+                <div className="overflow-x-auto border border-white/5 bg-black/20">
+                  <table className="w-full text-left text-[11px] font-mono whitespace-nowrap">
+                    <thead className="bg-white/5 text-[#808080] uppercase tracking-tighter">
+                      <tr>
+                        <th className="p-4 border-b border-white/5">Day</th>
+                        <th className="p-4 border-b border-white/5">Focus</th>
+                        <th className="p-4 border-b border-white/5">Output</th>
+                        <th className="p-4 border-b border-white/5 text-center">Dur</th>
                       </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-            </div>
-
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mb-8">
-              {/* 2. Capaian Minggu Ini */}
-              <div className="bg-white/5 p-6 rounded-2xl border border-white/5">
-                <h3 className="text-lg font-bold text-blue-400 mb-4 flex items-center gap-2">
-                  <span>2️⃣</span> Capaian Minggu Ini
-                </h3>
-                <ul className="space-y-3 text-slate-300 text-sm">
-                  {/* Menggunakan optional chaining (?.) dan item sebagai key */}
-                  {journal.capaian?.map((item: string) => (
-                    <li key={item} className="flex gap-3">
-                      <span className="text-green-400">✔</span> {item}
-                    </li>
-                  ))}
-                </ul>
+                    </thead>
+                    <tbody className="text-slate-300">
+                      {journal.aktivitas?.map((act: any) => (
+                        <tr key={act.hari} className="border-b border-white/[0.02] last:border-0 hover:bg-white/[0.02]">
+                          <td className="p-4 text-white font-bold">{act.hari}</td>
+                          <td className="p-4 text-[#808080]">{act.fokus}</td>
+                          <td className="p-4 text-[#808080]">{act.output}</td>
+                          <td className="p-4 text-center text-[var(--color-accent)]">{act.durasi}h</td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
               </div>
 
-              {/* 4. Kendala Mingguan */}
-              <div className="bg-white/5 p-6 rounded-2xl border border-white/5">
-                <h3 className="text-lg font-bold text-blue-400 mb-4 flex items-center gap-2">
-                  <span>4️⃣</span> Kendala Mingguan
-                </h3>
-                <ul className="space-y-3 text-slate-300 text-sm">
-                  <li><strong className="text-white">Akademik:</strong> {journal.kendala?.akademik || "-"}</li>
-                  <li><strong className="text-white">Teknis:</strong> {journal.kendala?.teknis || "-"}</li>
-                  <li><strong className="text-white">Pribadi:</strong> {journal.kendala?.pribadi || "-"}</li>
-                </ul>
-              </div>
-            </div>
-
-            {/* 3. Progress Semester */}
-            <div className="mb-8 bg-blue-500/10 border border-blue-500/20 p-6 rounded-2xl">
-              <h3 className="text-lg font-bold text-blue-400 mb-4 flex items-center gap-2">
-                <span>3️⃣</span> Progress terhadap Target Semester
-              </h3>
-              <div className="space-y-4 text-sm text-slate-300">
-                <p><strong className="text-white">Target Semester:</strong> {journal.progress?.target || "-"}</p>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-12 mb-12">
+                {/* 2. Achievements */}
                 <div>
-                  <div className="flex justify-between mb-1">
-                    <strong className="text-white">Progress saat ini</strong>
-                    <span className="font-bold text-blue-400">{journal.progress?.persentase || 0}%</span>
-                  </div>
-                  <div className="w-full bg-slate-800 rounded-full h-2.5">
-                    <div className="bg-blue-500 h-2.5 rounded-full transition-all duration-1000" style={{ width: `${journal.progress?.persentase || 0}%` }}></div>
+                  <h3 className="font-mono text-[11px] uppercase tracking-[0.2em] text-white mb-6 flex items-center gap-3">
+                    <span className="w-8 h-[1px] bg-[var(--color-accent)]"></span>
+                    02. Achievements
+                  </h3>
+                  <ul className="space-y-4">
+                    {journal.capaian?.map((item: string) => (
+                      <li key={item} className="flex gap-4 text-[12px] text-[#808080] font-mono leading-relaxed group/item">
+                        <span className="text-[var(--color-accent)] group-hover/item:translate-x-1 transition-transform">→</span>
+                        {item}
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+
+                {/* 4. Constraints */}
+                <div>
+                    <h3 className="font-mono text-[11px] uppercase tracking-[0.2em] text-white mb-6 flex items-center gap-3">
+                        <span className="w-8 h-[1px] bg-[var(--color-accent)]"></span>
+                        03. Constraints
+                    </h3>
+                    <div className="space-y-4 font-mono text-[11px] text-[#808080]">
+                        <p><span className="text-white uppercase tracking-tighter mr-2">[ACADEMIC]:</span> {journal.kendala?.akademik || "None"}</p>
+                        <p><span className="text-white uppercase tracking-tighter mr-2">[TECHNICAL]:</span> {journal.kendala?.teknis || "None"}</p>
+                        <p><span className="text-white uppercase tracking-tighter mr-2">[PERSONAL]:</span> {journal.kendala?.pribadi || "None"}</p>
+                    </div>
+                </div>
+              </div>
+
+              {/* 3. Progress Bar - Stylized */}
+              <div className="mb-12 p-8 border border-[var(--color-accent)]/20 bg-[var(--color-accent)]/[0.02]">
+                <h3 className="font-mono text-[11px] uppercase tracking-[0.2em] text-white mb-6">04. Semester Objectives Progress</h3>
+                <div className="space-y-4">
+                    <div className="flex justify-between items-end">
+                        <span className="font-mono text-[10px] text-[#808080] uppercase tracking-widest">Current Completion</span>
+                        <span className="font-display font-bold text-2xl text-white">{journal.progress?.persentase || 0}%</span>
+                    </div>
+                    <div className="relative w-full bg-white/5 h-[2px]">
+                        <div 
+                            className="absolute top-0 left-0 bg-[var(--color-accent)] h-full transition-all duration-1000 shadow-[0_0_15px_rgba(255,0,0,0.5)]" 
+                            style={{ width: `${journal.progress?.persentase || 0}%` }}
+                        ></div>
+                    </div>
+                    <p className="font-mono text-[10px] text-[#808080] italic">Target: {journal.progress?.target || "-"}</p>
+                </div>
+              </div>
+
+              {/* 5 & 6 Bottom Grid */}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-12 border-t border-white/5 pt-10">
+                <div>
+                  <h3 className="font-mono text-[11px] uppercase tracking-[0.2em] text-white mb-6">05. Self Evaluation</h3>
+                  <div className="space-y-6 font-mono text-[11px] text-[#808080]">
+                    <div>
+                        <p className="text-white mb-1 uppercase tracking-tighter underline underline-offset-4 decoration-[var(--color-accent)]/50">Top Success</p>
+                        <p>{journal.evaluasi?.terbaik || "-"}</p>
+                    </div>
+                    <div>
+                        <p className="text-white mb-1 uppercase tracking-tighter underline underline-offset-4 decoration-[var(--color-accent)]/50">Critical Error</p>
+                        <p>{journal.evaluasi?.kesalahan || "-"}</p>
+                    </div>
                   </div>
                 </div>
-                <p><strong className="text-white">Keterangan:</strong> {journal.progress?.keterangan || "-"}</p>
+
+                <div>
+                  <h3 className="font-mono text-[11px] uppercase tracking-[0.2em] text-white mb-6">06. Next Step Protocol</h3>
+                  <ul className="space-y-3 font-mono text-[11px] text-[#808080]">
+                    {journal.rencana?.map((item: string, idx: number) => (
+                      <li key={item} className="flex gap-3">
+                        <span className="text-[var(--color-accent)]">0{idx + 1}.</span>
+                        {item}
+                      </li>
+                    ))}
+                  </ul>
+                </div>
               </div>
+
             </div>
-
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-              {/* 5. Evaluasi Diri */}
-              <div className="bg-white/5 p-6 rounded-2xl border border-white/5">
-                <h3 className="text-lg font-bold text-blue-400 mb-4 flex items-center gap-2">
-                  <span>5️⃣</span> Evaluasi Diri
-                </h3>
-                <ul className="space-y-3 text-slate-300 text-sm">
-                  <li><strong className="text-white block mb-1">Keberhasilan terbaik minggu ini?</strong> {journal.evaluasi?.terbaik || "-"}</li>
-                  <li><strong className="text-white block mb-1">Kesalahan terbesar?</strong> {journal.evaluasi?.kesalahan || "-"}</li>
-                  <li><strong className="text-white block mb-1">Strategi minggu depan?</strong> {journal.evaluasi?.strategi || "-"}</li>
-                </ul>
-              </div>
-
-              {/* 6. Rencana Minggu Depan */}
-              <div className="bg-white/5 p-6 rounded-2xl border border-white/5">
-                <h3 className="text-lg font-bold text-blue-400 mb-4 flex items-center gap-2">
-                  <span>6️⃣</span> Rencana Minggu Depan
-                </h3>
-                <ul className="space-y-3 text-slate-300 text-sm list-decimal list-inside">
-                  {/* Menggunakan optional chaining (?.) dan item sebagai key */}
-                  {journal.rencana?.map((item: string) => (
-                    <li key={item} className="marker:text-blue-400 font-medium">
-                      {item}
-                    </li>
-                  ))}
-                </ul>
-              </div>
-            </div>
-
           </div>
         ))}
       </div>
@@ -173,29 +188,49 @@ const BlogPage: React.FC = () => {
   }
 
   return (
-    <div className="relative min-h-screen bg-slate-950 text-white p-6 md:p-12 lg:p-24 selection:bg-blue-500/30 font-sans">
+    <div className="relative min-h-screen bg-transparent text-white px-6 md:px-20 pt-32 selection:bg-[var(--color-accent)]/30 font-sans">
       
-      {/* Header */}
-      <div className="max-w-4xl mx-auto mb-16 flex flex-col md:flex-row justify-between items-start md:items-center gap-6">
-        <div>
-          <h1 className="text-4xl md:text-5xl font-black tracking-tighter text-white mb-2 uppercase">
-            Jurnal <span className="text-blue-500">Mahasiswa</span>.
-          </h1>
-          <p className="text-slate-400 font-medium">Laporan Aktivitas Mingguan - Ichya Ulumiddiin</p>
-        </div>
-        <Link 
-          to="/" 
-          className="px-8 py-4 rounded-2xl bg-white/5 border border-white/10 hover:bg-white/10 text-white font-black tracking-wider uppercase text-xs transition-all flex items-center gap-3"
+      {/* Page Header */}
+      <div className="max-w-4xl mx-auto mb-24">
+        <motion.div 
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="flex flex-col md:flex-row justify-between items-end gap-8 border-b border-white/10 pb-12"
         >
-          <span>←</span> KEMBALI
-        </Link>
+            <div>
+                <h1 className="text-6xl md:text-8xl font-display font-bold tracking-tighter text-white uppercase leading-[0.8]">
+                    Daily<br />
+                    <span className="text-[var(--color-accent)]">Journal</span>.
+                </h1>
+                <p className="font-mono text-[11px] uppercase tracking-[0.4em] text-[#808080] mt-8">
+                    Academic Activity & Progress Logs / Ichya Ulumiddiin
+                </p>
+            </div>
+            
+            <Link 
+              to="/" 
+              className="group relative inline-flex items-center justify-center bg-transparent border border-white/10 text-[#808080] hover:text-white font-mono text-[10px] font-bold tracking-[0.2em] px-8 py-4 uppercase transition-colors overflow-hidden"
+            >
+              <span className="relative z-10 flex items-center gap-2">
+                  <ArrowLeft className="w-3 h-3" />
+                  Terminal_Home
+              </span>
+              <div className="absolute inset-0 bg-white scale-x-0 origin-left transition-transform duration-500 ease-[0.16,1,0.3,1] group-hover:scale-x-100 mix-blend-difference"></div>
+            </Link>
+        </motion.div>
       </div>
 
-      {/* Menampilkan konten yang sudah diproses di atas */}
       {content}
       
     </div>
   );
 };
+
+// Simple motion wrapper since we can't import complex Reveal here without full setup
+const motion = {
+    div: ({ children, className, initial, animate }: any) => (
+        <div className={className}>{children}</div>
+    )
+}
 
 export default BlogPage;
