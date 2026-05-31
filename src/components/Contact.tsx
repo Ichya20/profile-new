@@ -1,254 +1,484 @@
-import { motion, useScroll, useTransform, AnimatePresence } from "motion/react";
-import React, { useRef, useState } from "react";
-import { Terminal, Send, Mail, MapPin, Github, Phone, Command, CheckCircle2 } from "lucide-react";
+import { AnimatePresence, motion, useMotionValue, useScroll, useSpring, useTransform } from "motion/react";
+import type { Variants } from "motion/react";
+import React, { ReactNode, useRef, useState } from "react";
+import {
+  ArrowUpRight,
+  CheckCircle2,
+  Command,
+  Copy,
+  Github,
+  Mail,
+  MapPin,
+  MessageSquareText,
+  Phone,
+  Send,
+  ShieldCheck,
+  Sparkles,
+  Terminal,
+  Wifi,
+  Zap,
+} from "lucide-react";
 
-export const Contact: React.FC = () => {
-  const containerRef = useRef(null);
-  const [formState, setFormState] = useState<'idle' | 'typing' | 'sending' | 'sent'>('idle');
-  const [focusedField, setFocusedField] = useState<string | null>(null);
+const ease = [0.16, 1, 0.3, 1] as const;
 
-  const { scrollYProgress } = useScroll({
-    target: containerRef,
-    offset: ["start end", "end start"]
-  });
+type FormState = "idle" | "typing" | "sending" | "sent";
 
-  const headerY = useTransform(scrollYProgress, [0, 1], [100, -100]);
-  const yBg = useTransform(scrollYProgress, [0, 1], ["0%", "30%"]);
+const fadeItem: Variants = {
+  hidden: { opacity: 0, y: 24, filter: "blur(10px)" },
+  visible: {
+    opacity: 1,
+    y: 0,
+    filter: "blur(0px)",
+    transition: { duration: 0.72, ease },
+  },
+};
 
-  const contactInfo = [
-    { icon: <Mail className="w-5 h-5"/>, label: "COMM_LINK.EMAIL", value: "ichyaulumiddin22@gmail.com", href: "mailto:ichyaulumiddin22@gmail.com" },
-    { icon: <Phone className="w-5 h-5"/>, label: "COMM_LINK.PHONE", value: "+62 831-1314-0251", href: "tel:+6283113140251" },
-    { icon: <Github className="w-5 h-5"/>, label: "COMM_LINK.GITHUB", value: "github.com/Ichya20", href: "https://github.com/Ichya20" },
-    { icon: <MapPin className="w-5 h-5"/>, label: "SYS_LOCATION", value: "Brebes, IDN", href: null },
-  ];
+const contactChannels = [
+  {
+    icon: <Mail className="h-5 w-5" />,
+    label: "Email",
+    value: "ichyaulumiddin22@gmail.com",
+    href: "mailto:ichyaulumiddin22@gmail.com",
+    meta: "Primary channel",
+  },
+  {
+    icon: <Github className="h-5 w-5" />,
+    label: "GitHub",
+    value: "github.com/Ichya20",
+    href: "https://github.com/Ichya20",
+    meta: "Code archive",
+  },
+  {
+    icon: <Phone className="h-5 w-5" />,
+    label: "Phone",
+    value: "+62 831-1314-0251",
+    href: "tel:+6283113140251",
+    meta: "Direct contact",
+  },
+  {
+    icon: <MapPin className="h-5 w-5" />,
+    label: "Location",
+    value: "Brebes, IDN",
+    href: null,
+    meta: "Local node",
+  },
+];
 
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    setFormState('sending');
-    setTimeout(() => {
-      setFormState('sent');
-      setTimeout(() => setFormState('idle'), 5000);
-    }, 2000);
+const availability = [
+  { label: "Status", value: "Open", icon: Wifi },
+  { label: "Mode", value: "Collab", icon: Sparkles },
+  { label: "Reply", value: "Manual", icon: ShieldCheck },
+];
+
+const MagneticCard = ({ children, className = "" }: { children: ReactNode; className?: string }) => {
+  const x = useMotionValue(0);
+  const y = useMotionValue(0);
+
+  const springX = useSpring(x, { stiffness: 140, damping: 20, mass: 0.14 });
+  const springY = useSpring(y, { stiffness: 140, damping: 20, mass: 0.14 });
+
+  const handleMove = (event: React.MouseEvent<HTMLDivElement>) => {
+    const rect = event.currentTarget.getBoundingClientRect();
+    x.set((event.clientX - rect.left - rect.width / 2) * 0.025);
+    y.set((event.clientY - rect.top - rect.height / 2) * 0.025);
+  };
+
+  const handleLeave = () => {
+    x.set(0);
+    y.set(0);
   };
 
   return (
-    <section ref={containerRef} className="bg-[#010101] w-full px-4 md:px-12 lg:px-20 py-32 relative text-white border-t border-[rgba(255,255,255,0.05)] z-10 overflow-hidden font-sans min-h-screen flex items-center">
-      
-      {/* Background Decor */}
-      <motion.div 
-        style={{ y: yBg }} 
-        className="absolute top-[20%] left-[-5%] select-none pointer-events-none opacity-[0.02]"
-      >
-         <div className="font-display font-black text-[25vw] leading-none uppercase tracking-tighter text-white whitespace-nowrap">
-           CONNECT
-         </div>
+    <motion.div
+      style={{ x: springX, y: springY }}
+      onMouseMove={handleMove}
+      onMouseLeave={handleLeave}
+      className={className}
+    >
+      {children}
+    </motion.div>
+  );
+};
+
+const InputShell = ({
+  label,
+  active,
+  children,
+}: {
+  label: string;
+  active: boolean;
+  children: ReactNode;
+}) => (
+  <div
+    className={`relative overflow-hidden rounded-3xl border bg-white/[0.025] p-5 transition-all duration-300 ${
+      active ? "border-[var(--color-accent)] shadow-[0_0_40px_rgba(204,0,0,0.12)]" : "border-white/10"
+    }`}
+  >
+    <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_top_right,rgba(204,0,0,0.12),transparent_42%)] opacity-0 transition-opacity duration-500 group-focus-within:opacity-100" />
+    <label
+      className={`mb-3 block font-mono text-[9px] uppercase tracking-[0.22em] transition-colors duration-300 ${
+        active ? "text-[var(--color-accent)]" : "text-[#666]"
+      }`}
+    >
+      {label}
+    </label>
+    {children}
+  </div>
+);
+
+export const Contact: React.FC = () => {
+  const sectionRef = useRef(null);
+  const [formState, setFormState] = useState<FormState>("idle");
+  const [focusedField, setFocusedField] = useState<string | null>(null);
+  const [copied, setCopied] = useState(false);
+
+  const { scrollYProgress } = useScroll({
+    target: sectionRef,
+    offset: ["start end", "end start"],
+  });
+
+  const bgY = useTransform(scrollYProgress, [0, 1], ["-6%", "14%"]);
+  const titleY = useTransform(scrollYProgress, [0, 1], [80, -80]);
+  const lineScale = useSpring(useTransform(scrollYProgress, [0.18, 0.72], [0, 1]), {
+    stiffness: 70,
+    damping: 24,
+  });
+
+  const startTyping = (field: string) => {
+    setFocusedField(field);
+    setFormState("typing");
+  };
+
+  const stopTyping = () => {
+    setFocusedField(null);
+    setFormState("idle");
+  };
+
+  const handleCopyEmail = async () => {
+    try {
+      await navigator.clipboard.writeText("ichyaulumiddin22@gmail.com");
+      setCopied(true);
+      setTimeout(() => setCopied(false), 1600);
+    } catch {
+      setCopied(false);
+    }
+  };
+
+  const handleSubmit = (event: React.FormEvent) => {
+    event.preventDefault();
+    setFormState("sending");
+
+    setTimeout(() => {
+      setFormState("sent");
+      setTimeout(() => setFormState("idle"), 5000);
+    }, 1500);
+  };
+
+  return (
+    <section
+      ref={sectionRef}
+      className="relative flex min-h-screen w-full items-center overflow-hidden border-t border-white/[0.06] bg-[#010101] px-4 py-28 text-white sm:px-6 md:px-12 lg:px-20 lg:py-36"
+    >
+      <motion.div style={{ y: bgY }} className="pointer-events-none absolute inset-0 opacity-[0.07]">
+        <div className="absolute inset-0 bg-[linear-gradient(rgba(255,255,255,0.08)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.08)_1px,transparent_1px)] bg-[size:58px_58px] [mask-image:radial-gradient(circle_at_center,black,transparent_74%)]" />
       </motion.div>
 
-      <div className="max-w-[1600px] mx-auto w-full relative z-10">
-        
-        {/* Header Area */}
-        <motion.div style={{ y: headerY }} className="mb-20 md:mb-32">
-          <motion.div 
-            initial={{ opacity: 0, x: -20 }}
-            whileInView={{ opacity: 1, x: 0 }}
-            viewport={{ once: true }}
-            className="font-mono text-[10px] text-[var(--color-accent)] mb-6 uppercase tracking-[0.3em] flex items-center gap-3 border-l-2 border-[var(--color-accent)] pl-4"
-          >
-            <Command className="w-4 h-4 animate-[spin_4s_linear_infinite]" />
-            07 &mdash; Communication Interface
-          </motion.div>
-          <motion.h2 
-            initial={{ opacity: 0, y: 20 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-            className="font-display font-black text-[56px] sm:text-[80px] lg:text-[120px] text-white leading-[0.8] tracking-tighter uppercase relative select-none"
-          >
-            INITIATE
-            <br />
-            <span className="text-transparent bg-clip-text" style={{ WebkitTextStroke: '2px white', WebkitTextFillColor: 'transparent' }}>CONTACT.</span>
-          </motion.h2>
-        </motion.div>
+      <div className="pointer-events-none absolute -right-48 top-1/4 h-[700px] w-[700px] rounded-full bg-[radial-gradient(circle,rgba(204,0,0,0.2),transparent_64%)] blur-3xl" />
+      <div className="pointer-events-none absolute left-[-5%] top-12 font-display text-[18vw] font-black uppercase leading-none tracking-[-0.08em] text-white/[0.022]">
+        Relay
+      </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 lg:gap-20 items-stretch">
-          
-          {/* LEFT COLUMN: Data Nodes */}
-          <div className="lg:col-span-5 flex flex-col justify-between">
-            <div>
-              <motion.p 
-                initial={{ opacity: 0 }}
-                whileInView={{ opacity: 1 }}
-                viewport={{ once: true }}
-                className="font-mono text-[13px] text-[#A0A0A0] mb-12 max-w-[400px] leading-relaxed uppercase tracking-[0.1em] border-l border-[rgba(255,255,255,0.1)] pl-6"
-              >
-                System is primed for external transmissions. Awaiting remote connection requests for collaborative operations.
-              </motion.p>
-              
-              <div className="flex flex-col gap-4">
-                {contactInfo.map((info, idx) => (
-                  <motion.div 
-                    key={idx} 
-                    initial={{ opacity: 0, x: -20 }}
-                    whileInView={{ opacity: 1, x: 0 }}
-                    viewport={{ once: true }}
-                    transition={{ delay: idx * 0.1 }}
-                    className="group flex flex-col sm:flex-row sm:items-center gap-4 p-4 border border-[rgba(255,255,255,0.05)] bg-[rgba(255,255,255,0.01)] hover:border-[var(--color-accent)] hover:bg-[rgba(204,0,0,0.02)] transition-all duration-500 relative overflow-hidden"
-                  >
-                    {/* Scanline hover */}
-                    <div className="absolute inset-0 bg-gradient-to-b from-transparent via-[var(--color-accent)] to-transparent opacity-0 group-hover:opacity-[0.05] -translate-y-full group-hover:translate-y-full transition-all duration-1000 ease-linear"></div>
+      <div className="relative z-10 mx-auto w-full max-w-[1600px]">
+        <motion.div
+          variants={fadeItem}
+          initial="hidden"
+          whileInView="visible"
+          viewport={{ once: true, margin: "-10%" }}
+          className="mb-16 grid gap-10 lg:grid-cols-[1fr_0.72fr] lg:items-end"
+        >
+          <div>
+            <div className="mb-7 flex items-center gap-3 border-l-2 border-[var(--color-accent)] pl-4 font-mono text-[10px] uppercase tracking-[0.3em] text-[var(--color-accent)]">
+              <Command className="h-4 w-4 animate-[spin_5s_linear_infinite]" />
+              07 — Contact Relay
+            </div>
+            <motion.h2
+              style={{ y: titleY }}
+              className="font-display text-[clamp(3.3rem,8.8vw,8.5rem)] font-black uppercase leading-[0.82] tracking-[-0.08em]"
+            >
+              Let&apos;s
+              <br />
+              <span className="text-transparent [-webkit-text-stroke:1px_rgba(255,255,255,0.75)] sm:[-webkit-text-stroke:2px_rgba(255,255,255,0.75)]">
+                Connect
+              </span>
+              <span className="text-[var(--color-accent)]">.</span>
+            </motion.h2>
+          </div>
 
-                    <div className="flex-shrink-0 w-10 h-10 border border-[rgba(255,255,255,0.1)] flex items-center justify-center text-[#555] group-hover:text-[var(--color-accent)] group-hover:border-[var(--color-accent)] transition-colors duration-500 bg-[#000]">
-                      {info.icon}
-                    </div>
-                    
-                    <div className="flex flex-col relative z-10">
-                      <span className="font-mono text-[9px] text-[#555] uppercase tracking-[0.2em] mb-1 group-hover:text-[#888] transition-colors">
-                        {info.label}
-                      </span>
-                      {info.href ? (
-                        <a href={info.href} className="font-mono text-[13px] font-bold text-white transition-colors duration-300 hover:text-[var(--color-accent)]" target="_blank" rel="noopener noreferrer">
-                          {info.value}
-                        </a>
-                      ) : (
-                        <span className="font-mono text-[13px] font-bold text-white cursor-default">
-                          {info.value}
-                        </span>
-                      )}
-                    </div>
-                  </motion.div>
-                ))}
+          <div className="rounded-[2rem] border border-white/10 bg-white/[0.025] p-6 backdrop-blur-2xl">
+            <div className="mb-6 flex items-center justify-between">
+              <div>
+                <p className="font-mono text-[9px] uppercase tracking-[0.24em] text-[var(--color-accent)]">
+                  Availability Capsule
+                </p>
+                <p className="mt-2 font-display text-2xl font-bold">Ready to Build</p>
+              </div>
+              <div className="relative flex h-14 w-14 items-center justify-center rounded-2xl border border-[var(--color-accent)]/35 bg-[var(--color-accent)]/10">
+                <span className="absolute h-3 w-3 animate-ping rounded-full bg-[var(--color-accent)] opacity-60" />
+                <span className="h-3 w-3 rounded-full bg-[var(--color-accent)]" />
               </div>
             </div>
 
-            <div className="mt-12 lg:mt-0 font-mono text-[10px] text-[#444] uppercase tracking-[0.2em] flex items-center gap-2">
-               <span className="w-1.5 h-1.5 bg-green-500 rounded-full animate-pulse"></span>
-               Local Node: Online
+            <div className="grid grid-cols-3 gap-2">
+              {availability.map(({ label, value, icon: Icon }) => (
+                <div key={label} className="rounded-2xl border border-white/10 bg-black/30 p-3">
+                  <Icon className="mb-3 h-4 w-4 text-[var(--color-accent)]" />
+                  <p className="font-mono text-[8px] uppercase tracking-[0.16em] text-[#777]">{label}</p>
+                  <p className="mt-1 font-display text-base font-bold text-white">{value}</p>
+                </div>
+              ))}
+            </div>
+          </div>
+        </motion.div>
+
+        <div className="grid gap-8 xl:grid-cols-[0.86fr_1.14fr]">
+          <div className="space-y-6">
+            <MagneticCard className="relative overflow-hidden rounded-[2.6rem] border border-white/10 bg-[#050505]/90 p-6 shadow-[0_28px_90px_rgba(0,0,0,0.58)] backdrop-blur-2xl md:p-8">
+              <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_right,rgba(204,0,0,0.18),transparent_46%)]" />
+              <div className="absolute inset-0 bg-[linear-gradient(rgba(255,255,255,0.055)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.055)_1px,transparent_1px)] bg-[size:28px_28px] opacity-[0.08]" />
+
+              <div className="relative z-10">
+                <div className="mb-8 flex items-start justify-between gap-5">
+                  <div>
+                    <p className="font-mono text-[9px] uppercase tracking-[0.24em] text-[var(--color-accent)]">
+                      Direct Channel
+                    </p>
+                    <h3 className="mt-3 font-display text-4xl font-black uppercase leading-[0.9] tracking-[-0.06em] text-white md:text-5xl">
+                      Send me<br />a signal
+                    </h3>
+                  </div>
+                  <MessageSquareText className="h-10 w-10 text-[var(--color-accent)]" strokeWidth={1.4} />
+                </div>
+
+                <p className="border-l border-white/10 pl-5 text-[15px] leading-[1.8] text-[#a7a7a7]">
+                  Open for collaboration, portfolio feedback, project discussion, internships, and experimental AI/web builds.
+                </p>
+
+                <div className="mt-8 rounded-3xl border border-white/10 bg-black/35 p-4">
+                  <div className="mb-3 flex items-center justify-between gap-4">
+                    <p className="font-mono text-[9px] uppercase tracking-[0.22em] text-[#777]">Primary Email</p>
+                    <button
+                      type="button"
+                      onClick={handleCopyEmail}
+                      className="inline-flex items-center gap-2 rounded-full border border-white/10 px-3 py-1.5 font-mono text-[8px] uppercase tracking-[0.16em] text-[#999] transition-colors duration-300 hover:border-[var(--color-accent)] hover:text-white"
+                    >
+                      <Copy className="h-3.5 w-3.5 text-[var(--color-accent)]" />
+                      {copied ? "Copied" : "Copy"}
+                    </button>
+                  </div>
+                  <a
+                    href="mailto:ichyaulumiddin22@gmail.com"
+                    className="block truncate font-mono text-[13px] font-bold text-white transition-colors duration-300 hover:text-[var(--color-accent)]"
+                  >
+                    ichyaulumiddin22@gmail.com
+                  </a>
+                </div>
+              </div>
+            </MagneticCard>
+
+            <div className="grid gap-4 sm:grid-cols-2">
+              {contactChannels.map((channel, index) => (
+                <motion.div
+                  key={channel.label}
+                  initial={{ opacity: 0, y: 22, filter: "blur(8px)" }}
+                  whileInView={{ opacity: 1, y: 0, filter: "blur(0px)" }}
+                  viewport={{ once: true, margin: "-8%" }}
+                  transition={{ duration: 0.6, delay: index * 0.06, ease }}
+                  className="group relative overflow-hidden rounded-[1.7rem] border border-white/10 bg-white/[0.025] p-5 backdrop-blur-2xl transition-colors duration-500 hover:border-[var(--color-accent)]/80"
+                >
+                  <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_right,rgba(204,0,0,0.16),transparent_45%)] opacity-0 transition-opacity duration-500 group-hover:opacity-100" />
+                  <div className="relative z-10">
+                    <div className="mb-5 flex items-center justify-between gap-3">
+                      <div className="flex h-11 w-11 items-center justify-center rounded-2xl border border-white/10 bg-black/35 text-[#777] transition-colors duration-500 group-hover:border-[var(--color-accent)] group-hover:text-[var(--color-accent)]">
+                        {channel.icon}
+                      </div>
+                      {channel.href && (
+                        <ArrowUpRight className="h-4 w-4 text-[#555] transition-all duration-300 group-hover:-translate-y-1 group-hover:translate-x-1 group-hover:text-[var(--color-accent)]" />
+                      )}
+                    </div>
+
+                    <p className="font-mono text-[8px] uppercase tracking-[0.22em] text-[#777]">{channel.meta}</p>
+                    <h4 className="mt-2 font-display text-xl font-bold text-white">{channel.label}</h4>
+
+                    {channel.href ? (
+                      <a
+                        href={channel.href}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="mt-3 block truncate font-mono text-[11px] text-[#a7a7a7] transition-colors duration-300 hover:text-[var(--color-accent)]"
+                      >
+                        {channel.value}
+                      </a>
+                    ) : (
+                      <p className="mt-3 font-mono text-[11px] text-[#a7a7a7]">{channel.value}</p>
+                    )}
+                  </div>
+                </motion.div>
+              ))}
             </div>
           </div>
 
-          {/* RIGHT COLUMN: Terminal Form */}
-          <div className="lg:col-span-7">
-            <motion.div 
-               initial={{ opacity: 0, y: 30 }}
-               whileInView={{ opacity: 1, y: 0 }}
-               viewport={{ once: true }}
-               className="h-full border border-[rgba(255,255,255,0.1)] bg-[#030303] flex flex-col relative shadow-[0_0_50px_rgba(0,0,0,0.5)]"
-            >
-               {/* Terminal Bar */}
-               <div className="bg-[rgba(255,255,255,0.02)] border-b border-[rgba(255,255,255,0.05)] h-12 flex items-center justify-between px-6 shrink-0">
+          <MagneticCard>
+            <div className="relative min-h-[720px] overflow-hidden rounded-[2.6rem] border border-white/10 bg-[#050505]/90 shadow-[0_34px_100px_rgba(0,0,0,0.72)] backdrop-blur-2xl">
+              <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_right,rgba(204,0,0,0.2),transparent_45%)]" />
+              <div className="absolute inset-0 bg-[linear-gradient(rgba(255,255,255,0.055)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.055)_1px,transparent_1px)] bg-[size:30px_30px] opacity-[0.08]" />
+
+              <div className="relative z-10 flex min-h-[720px] flex-col">
+                <div className="flex items-center justify-between border-b border-white/10 px-5 py-4">
                   <div className="flex items-center gap-4">
-                     <div className="flex gap-2">
-                       <div className="w-3 h-3 rounded-full bg-[#333]"></div>
-                       <div className="w-3 h-3 rounded-full bg-[#333]"></div>
-                       <div className="w-3 h-3 rounded-full bg-[#333]"></div>
-                     </div>
-                     <span className="font-mono text-[10px] text-[#666] uppercase tracking-[0.2em]">~/msg_relay.sh</span>
+                    <div className="flex gap-2">
+                      <span className="h-2.5 w-2.5 rounded-full bg-[var(--color-accent)]" />
+                      <span className="h-2.5 w-2.5 rounded-full bg-white/25" />
+                      <span className="h-2.5 w-2.5 rounded-full bg-white/10" />
+                    </div>
+                    <span className="font-mono text-[9px] uppercase tracking-[0.22em] text-[#777]">message-dock.ui</span>
                   </div>
-                  <div className="font-mono text-[10px] text-[#444] uppercase flex items-center gap-2">
-                     <Terminal className="w-3 h-3" />
-                     {formState !== 'idle' ? 'ACTIVE' : 'IDLE'}
+                  <div className="flex items-center gap-2 font-mono text-[9px] uppercase tracking-[0.2em] text-[#777]">
+                    <Terminal className="h-3.5 w-3.5 text-[var(--color-accent)]" />
+                    {formState === "idle" ? "Idle" : formState}
                   </div>
-               </div>
+                </div>
 
-               <div className="p-6 md:p-10 flex-grow relative overflow-hidden flex flex-col">
-                 
-                 {/* Grid Overlay */}
-                 <div className="absolute inset-0 pointer-events-none z-0 opacity-[0.03] bg-[linear-gradient(rgba(255,255,255,0.1)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.1)_1px,transparent_1px)] bg-[size:20px_20px]"></div>
-                 
-                 <AnimatePresence mode="wait">
-                   {formState === 'sent' ? (
-                     <motion.div 
-                       key="success"
-                       initial={{ opacity: 0, scale: 0.9 }}
-                       animate={{ opacity: 1, scale: 1 }}
-                       exit={{ opacity: 0 }}
-                       className="absolute inset-0 flex flex-col items-center justify-center z-20 bg-[rgba(3,3,3,0.9)] backdrop-blur-sm"
-                     >
-                        <CheckCircle2 className="w-16 h-16 text-[var(--color-accent)] mb-6" />
-                        <h3 className="font-display font-black text-3xl uppercase tracking-widest text-white mb-2">Payload Delivered</h3>
-                        <p className="font-mono text-[12px] text-[#A0A0A0] uppercase tracking-[0.1em]">Awaiting manual response...</p>
-                     </motion.div>
-                   ) : (
-                     <motion.form 
-                       key="form"
-                       initial={{ opacity: 0 }}
-                       animate={{ opacity: 1 }}
-                       exit={{ opacity: 0 }}
-                       className="flex flex-col gap-8 h-full z-10 relative" 
-                       onSubmit={handleSubmit}
-                     >
-                       
-                       <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-                         <div className="relative group mt-4 md:mt-0">
-                           <label className={`absolute -top-6 left-0 font-mono text-[9px] uppercase tracking-[0.2em] transition-colors duration-300 ${focusedField === 'name' ? 'text-[var(--color-accent)]' : 'text-[#555]'}`}>
-                             Sender_ID [Name]
-                           </label>
-                           <input 
-                             type="text" 
-                             onFocus={() => { setFocusedField('name'); setFormState('typing'); }}
-                             onBlur={() => { setFocusedField(null); setFormState('idle'); }}
-                             className="w-full bg-transparent border-b border-[rgba(255,255,255,0.1)] px-0 py-2 font-mono text-[13px] text-white outline-none transition-all duration-300 focus:border-[var(--color-accent)] placeholder-[rgba(255,255,255,0.1)] focus:bg-[rgba(255,255,255,0.02)]"
-                             required
-                           />
-                         </div>
-                         <div className="relative group mt-4 md:mt-0">
-                           <label className={`absolute -top-6 left-0 font-mono text-[9px] uppercase tracking-[0.2em] transition-colors duration-300 ${focusedField === 'email' ? 'text-[var(--color-accent)]' : 'text-[#555]'}`}>
-                             Return_Addr [Email]
-                           </label>
-                           <input 
-                             type="email" 
-                             onFocus={() => { setFocusedField('email'); setFormState('typing'); }}
-                             onBlur={() => { setFocusedField(null); setFormState('idle'); }}
-                             className="w-full bg-transparent border-b border-[rgba(255,255,255,0.1)] px-0 py-2 font-mono text-[13px] text-white outline-none transition-all duration-300 focus:border-[var(--color-accent)] placeholder-[rgba(255,255,255,0.1)] focus:bg-[rgba(255,255,255,0.02)]"
-                             required
-                           />
-                         </div>
-                       </div>
-                       
-                       <div className="relative group flex-grow flex flex-col mt-6">
-                         <label className={`absolute -top-6 left-0 font-mono text-[9px] uppercase tracking-[0.2em] transition-colors duration-300 ${focusedField === 'msg' ? 'text-[var(--color-accent)]' : 'text-[#555]'}`}>
-                           Data_Payload [Message]
-                         </label>
-                         <textarea 
-                           onFocus={() => { setFocusedField('msg'); setFormState('typing'); }}
-                           onBlur={() => { setFocusedField(null); setFormState('idle'); }}
-                           className="w-full h-[150px] md:h-full bg-[rgba(255,255,255,0.01)] border border-[rgba(255,255,255,0.1)] p-4 font-mono text-[13px] text-[#A0A0A0] outline-none transition-all duration-300 focus:border-[var(--color-accent)] resize-none focus:text-white focus:bg-[rgba(255,255,255,0.03)]"
-                           required
-                         ></textarea>
-                       </div>
+                <div className="relative flex flex-1 flex-col p-6 md:p-9 lg:p-11">
+                  <AnimatePresence mode="wait">
+                    {formState === "sent" && (
+                      <motion.div
+                        key="success"
+                        initial={{ opacity: 0, scale: 0.95, filter: "blur(10px)" }}
+                        animate={{ opacity: 1, scale: 1, filter: "blur(0px)" }}
+                        exit={{ opacity: 0, scale: 0.95, filter: "blur(10px)" }}
+                        transition={{ duration: 0.45, ease }}
+                        className="absolute inset-0 z-30 flex flex-col items-center justify-center rounded-[2.6rem] bg-black/85 p-8 text-center backdrop-blur-xl"
+                      >
+                        <CheckCircle2 className="mb-6 h-16 w-16 text-[var(--color-accent)]" />
+                        <h3 className="font-display text-4xl font-black uppercase tracking-tight text-white">Message Ready</h3>
+                        <p className="mt-4 max-w-md font-mono text-[11px] uppercase leading-[1.8] tracking-[0.16em] text-[#a7a7a7]">
+                          Form simulation complete. Send through email/GitHub for real delivery.
+                        </p>
+                      </motion.div>
+                    )}
+                  </AnimatePresence>
 
-                       <div className="mt-4 flex flex-col sm:flex-row items-center justify-between gap-6">
-                         <div className="hidden md:flex font-mono text-[10px] text-[#555] uppercase tracking-[0.1em] items-center gap-2">
-                           {formState === 'typing' ? (
-                             <><span className="w-1.5 h-1.5 bg-[var(--color-accent)] rounded-full animate-ping"></span> Keystrokes detected...</>
-                           ) : formState === 'sending' ? (
-                             <><span className="w-1.5 h-1.5 bg-yellow-500 rounded-full animate-pulse"></span> Processing payload...</>
-                           ) : (
-                             <span className="opacity-50">Awaiting input...</span>
-                           )}
-                         </div>
+                  <div className="mb-9 flex items-start justify-between gap-5">
+                    <div>
+                      <div className="mb-4 flex items-center gap-3 font-mono text-[10px] uppercase tracking-[0.24em] text-[var(--color-accent)]">
+                        <Zap className="h-4 w-4" />
+                        Compose Panel
+                      </div>
+                      <h3 className="font-display text-[clamp(2rem,4.4vw,4.35rem)] font-black uppercase leading-[0.88] tracking-[-0.06em] text-white">
+                        Build a<br />message
+                      </h3>
+                    </div>
 
-                         <button 
-                           type="submit"
-                           disabled={formState === 'sending'}
-                           className="group relative border border-[var(--color-accent)] bg-transparent text-white font-mono font-bold text-[11px] tracking-[0.2em] uppercase px-12 py-4 transition-all duration-300 hover:bg-[var(--color-accent)] overflow-hidden w-full md:w-auto disabled:opacity-50 disabled:cursor-not-allowed"
-                         >
-                           {/* Button Hover effect */}
-                           <div className="absolute inset-0 w-0 bg-white transition-all duration-500 ease-out group-hover:w-full z-0"></div>
-                           
-                           <span className="relative z-10 flex items-center justify-center gap-3 transition-colors duration-300 group-hover:text-black">
-                             {formState === 'sending' ? 'TRANSMITTING...' : 'EXECUTE.SEND()'}
-                             <Send className={`w-4 h-4 ${formState === 'sending' ? 'animate-pulse' : 'group-hover:translate-x-1 group-hover:-translate-y-1 transition-transform'}`} />
-                           </span>
-                         </button>
-                       </div>
-                     </motion.form>
-                   )}
-                 </AnimatePresence>
+                    <div className="hidden rounded-3xl border border-white/10 bg-white/[0.03] p-4 sm:block">
+                      <p className="font-mono text-[8px] uppercase tracking-[0.2em] text-[#777]">Relay Path</p>
+                      <div className="mt-3 flex items-center gap-2">
+                        <span className="h-2 w-2 rounded-full bg-[var(--color-accent)]" />
+                        <motion.div
+                          style={{ scaleX: lineScale, transformOrigin: "left" }}
+                          className="h-px w-20 bg-[var(--color-accent)]"
+                        />
+                        <span className="h-2 w-2 rounded-full bg-white/25" />
+                      </div>
+                    </div>
+                  </div>
 
-               </div>
-            </motion.div>
-          </div>
+                  <form onSubmit={handleSubmit} className="relative z-10 flex flex-1 flex-col gap-6">
+                    <div className="grid gap-6 md:grid-cols-2">
+                      <InputShell label="Sender_ID" active={focusedField === "name"}>
+                        <input
+                          type="text"
+                          onFocus={() => startTyping("name")}
+                          onBlur={stopTyping}
+                          className="w-full bg-transparent font-mono text-[13px] text-white outline-none placeholder:text-white/10"
+                          placeholder="your name"
+                          required
+                        />
+                      </InputShell>
 
+                      <InputShell label="Return_Addr" active={focusedField === "email"}>
+                        <input
+                          type="email"
+                          onFocus={() => startTyping("email")}
+                          onBlur={stopTyping}
+                          className="w-full bg-transparent font-mono text-[13px] text-white outline-none placeholder:text-white/10"
+                          placeholder="your@email.com"
+                          required
+                        />
+                      </InputShell>
+                    </div>
+
+                    <InputShell label="Subject_Node" active={focusedField === "subject"}>
+                      <input
+                        type="text"
+                        onFocus={() => startTyping("subject")}
+                        onBlur={stopTyping}
+                        className="w-full bg-transparent font-mono text-[13px] text-white outline-none placeholder:text-white/10"
+                        placeholder="collaboration / project / question"
+                        required
+                      />
+                    </InputShell>
+
+                    <div className={`relative flex flex-1 flex-col overflow-hidden rounded-[2rem] border bg-white/[0.025] p-5 transition-colors duration-300 ${
+                      focusedField === "message" ? "border-[var(--color-accent)]" : "border-white/10"
+                    }`}>
+                      <label className={`mb-3 block font-mono text-[9px] uppercase tracking-[0.22em] transition-colors duration-300 ${
+                        focusedField === "message" ? "text-[var(--color-accent)]" : "text-[#666]"
+                      }`}>
+                        Data_Payload
+                      </label>
+                      <textarea
+                        onFocus={() => startTyping("message")}
+                        onBlur={stopTyping}
+                        className="min-h-[220px] flex-1 resize-none bg-transparent font-mono text-[13px] leading-[1.8] text-[#d0d0d0] outline-none placeholder:text-white/10"
+                        placeholder="Write your message here..."
+                        required
+                      />
+                    </div>
+
+                    <div className="flex flex-col items-stretch justify-between gap-5 sm:flex-row sm:items-center">
+                      <div className="font-mono text-[10px] uppercase tracking-[0.16em] text-[#666]">
+                        {formState === "typing" ? (
+                          <span className="flex items-center gap-2">
+                            <span className="h-1.5 w-1.5 animate-ping rounded-full bg-[var(--color-accent)]" />
+                            Input stream active
+                          </span>
+                        ) : formState === "sending" ? (
+                          <span className="flex items-center gap-2">
+                            <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-yellow-500" />
+                            Preparing payload
+                          </span>
+                        ) : (
+                          <span className="flex items-center gap-2">
+                            <span className="h-1.5 w-1.5 rounded-full bg-[#555]" />
+                            Waiting for input
+                          </span>
+                        )}
+                      </div>
+
+                      <button
+                        type="submit"
+                        disabled={formState === "sending"}
+                        className="group inline-flex items-center justify-center gap-3 rounded-2xl bg-[var(--color-accent)] px-7 py-4 font-mono text-[11px] font-bold uppercase tracking-[0.16em] text-white shadow-[0_18px_50px_rgba(204,0,0,0.24)] transition-colors duration-300 hover:bg-white hover:text-black disabled:cursor-wait disabled:opacity-70"
+                      >
+                        {formState === "sending" ? "Preparing" : "Prepare Message"}
+                        <Send className="h-4 w-4 transition-transform duration-300 group-hover:translate-x-1 group-hover:-translate-y-1" />
+                      </button>
+                    </div>
+                  </form>
+                </div>
+              </div>
+            </div>
+          </MagneticCard>
         </div>
       </div>
     </section>

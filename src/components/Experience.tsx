@@ -1,222 +1,284 @@
-import { motion, useScroll, useTransform, useSpring, useInView } from "motion/react";
-import React, { useRef, ReactNode } from "react";
-import { Terminal, Briefcase, Activity, Clock } from "lucide-react";
+import { motion, useInView, useScroll, useSpring, useTransform } from "motion/react";
+import type { Variants } from "motion/react";
+import React, { ReactNode, useRef } from "react";
+import {
+  Activity,
+  ArrowUpRight,
+  Briefcase,
+  CalendarDays,
+  Clock,
+  Code2,
+  DatabaseZap,
+  GitBranch,
+  Layers3,
+  LineChart,
+  ScanLine,
+  ShieldCheck,
+  Terminal,
+} from "lucide-react";
 
-const ExperienceCard: React.FC<{ exp: any, index: number }> = ({ exp, index }) => {
+const cardEase = [0.16, 1, 0.3, 1] as const;
+
+const headerItem: Variants = {
+  hidden: { opacity: 0, y: 24, filter: "blur(10px)" },
+  visible: {
+    opacity: 1,
+    y: 0,
+    filter: "blur(0px)",
+    transition: { duration: 0.72, ease: cardEase },
+  },
+};
+
+type ExperienceItem = {
+  date: string;
+  role: string;
+  company: string;
+  status: string;
+  icon: ReactNode;
+  accent: string;
+  bullets: string[];
+  tags: string[];
+};
+
+const experiences: ExperienceItem[] = [
+  {
+    date: "2026",
+    role: "Website Developer Intern",
+    company: "PT Aliqa Muslim Indonesia · Hybrid",
+    status: "Project Internship",
+    icon: <Terminal className="h-5 w-5" />,
+    accent: "EXP_001",
+    bullets: [
+      "Built and developed company website flow across front-end and back-end areas.",
+      "Handled testing, debugging, and interface iteration to improve usability.",
+      "Worked in a project-based internship focused on rapid web application delivery.",
+    ],
+    tags: ["Frontend", "Backend", "Testing"],
+  },
+  {
+    date: "2024",
+    role: "Freelance Web Developer",
+    company: "Remote · Global",
+    status: "Client Work",
+    icon: <Code2 className="h-5 w-5" />,
+    accent: "EXP_002",
+    bullets: [
+      "Built responsive websites using modern, scalable web development stacks.",
+      "Performed maintenance, debugging, and performance-focused improvements.",
+      "Translated client requirements into polished and functional interface features.",
+    ],
+    tags: ["React", "Responsive", "UI"],
+  },
+  {
+    date: "2024",
+    role: "Data Research Specialist",
+    company: "Remote · Contract",
+    status: "Data Ops",
+    icon: <DatabaseZap className="h-5 w-5" />,
+    accent: "EXP_003",
+    bullets: [
+      "Collected and validated datasets from multiple credible sources.",
+      "Analyzed raw data and converted findings into spreadsheet-based reports.",
+      "Prepared data-driven insights to support strategic decision-making.",
+    ],
+    tags: ["Research", "Spreadsheet", "Analysis"],
+  },
+  {
+    date: "02-Prs",
+    role: "Staff Team Reviewer",
+    company: "Satria Muda · Telkom Purwokerto",
+    status: "Organization",
+    icon: <ShieldCheck className="h-5 w-5" />,
+    accent: "EXP_004",
+    bullets: [
+      "Reviewed performance metrics and content quality with a structured evaluation flow.",
+      "Helped maintain organizational standards across collaborative team activities.",
+    ],
+    tags: ["Review", "Quality", "Team"],
+  },
+];
+
+const FloatingPanel = ({ children, className = "" }: { children: ReactNode; className?: string }) => (
+  <div className={`relative overflow-hidden rounded-3xl border border-white/10 bg-white/[0.025] backdrop-blur-2xl shadow-[inset_0_1px_0_rgba(255,255,255,0.08)] ${className}`}>
+    <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_top_right,rgba(204,0,0,0.18),transparent_42%)]" />
+    <div className="relative z-10">{children}</div>
+  </div>
+);
+
+const ExperienceCard = ({ exp, index }: { exp: ExperienceItem; index: number }) => {
   const cardRef = useRef(null);
-  const isInView = useInView(cardRef, { once: true, margin: "-100px" });
-
+  const isInView = useInView(cardRef, { once: true, margin: "-120px" });
   const isEven = index % 2 === 0;
 
   return (
     <motion.div
       ref={cardRef}
-      initial={{ opacity: 0, y: 50, filter: "blur(10px)" }}
-      animate={isInView ? { opacity: 1, y: 0, filter: "blur(0px)" } : { opacity: 0, y: 50, filter: "blur(10px)" }}
-      transition={{ duration: 0.8, delay: 0.1, ease: [0.16, 1, 0.3, 1] }}
-      className="relative flex flex-col md:flex-row group w-full mb-12 sm:mb-20 xl:mb-32"
+      initial={{ opacity: 0, y: 60, filter: "blur(12px)" }}
+      animate={isInView ? { opacity: 1, y: 0, filter: "blur(0px)" } : { opacity: 0, y: 60, filter: "blur(12px)" }}
+      transition={{ duration: 0.78, delay: index * 0.08, ease: cardEase }}
+      className={`relative grid gap-5 lg:grid-cols-2 ${index !== experiences.length - 1 ? "mb-10 lg:mb-16" : ""}`}
     >
-      {/* Interactive Timeline Node */}
-      <div className="absolute top-0 md:top-1/2 left-[28px] md:left-1/2 w-4 h-4 -ml-[7px] md:-ml-2 md:-mt-2 rounded-none md:-rotate-45 border border-[var(--color-accent)] bg-[#050505] z-20 group-hover:scale-125 group-hover:bg-[rgba(204,0,0,0.2)] transition-all duration-500 hidden sm:block">
-        <div className="absolute inset-0 m-auto w-1.5 h-1.5 bg-[var(--color-accent)] animate-pulse"></div>
-      </div>
-
-      {/* Date - Desktop: absolute left/right based on even/odd. Mobile: standard flow */}
-      <div className={`
-        relative md:absolute top-0 md:top-1/2 md:-translate-y-1/2 z-10 
-        w-full md:w-[calc(50%-40px)] 
-        ${isEven ? 'md:left-0 md:text-right' : 'md:right-0 md:text-left'}
-        pl-[60px] md:pl-0 mb-4 md:mb-0 flex flex-col md:block ${isEven ? 'md:items-end' : 'md:items-start'}
-      `}>
-        <motion.div 
-          className="font-display font-black text-[56px] md:text-[80px] lg:text-[100px] text-transparent leading-[0.8] tracking-tighter opacity-30 group-hover:opacity-100 transition-all duration-700 pointer-events-none inline-block relative"
-          style={{ WebkitTextStroke: '2px rgba(255,255,255,0.5)' }}
-        >
-          <span className="text-[var(--color-accent)] text-[30px] md:text-[40px] absolute -top-4 -left-6 md:-left-8 opacity-0 group-hover:opacity-100 transition-opacity duration-500">[</span>
-          {exp.date}
-          <span className="text-[var(--color-accent)] text-[30px] md:text-[40px] absolute -bottom-4 -right-6 md:-right-8 opacity-0 group-hover:opacity-100 transition-opacity duration-500">]</span>
-        </motion.div>
-        
-        <div className={`hidden md:block absolute top-1/2 -translate-y-1/2 w-12 h-[1px] bg-[rgba(255,255,255,0.1)] overflow-hidden
-          ${isEven ? 'right-[-40px]' : 'left-[-40px]'}
-        `}>
-           <div className="absolute top-0 left-0 w-full h-full bg-[var(--color-accent)] -translate-x-full group-hover:translate-x-0 transition-transform duration-700"></div>
+      <div className={`hidden lg:flex ${isEven ? "justify-end pr-14 text-right" : "order-2 justify-start pl-14 text-left"}`}>
+        <div className="relative pt-8">
+          <p className="font-display text-[88px] font-black leading-none tracking-[-0.08em] text-transparent opacity-70 [-webkit-text-stroke:1px_rgba(255,255,255,0.28)]">
+            {exp.date}
+          </p>
+          <p className="mt-3 font-mono text-[10px] uppercase tracking-[0.26em] text-[var(--color-accent)]">{exp.status}</p>
         </div>
       </div>
 
-      {/* Main Content Card */}
-      <div className={`
-        w-full md:w-[calc(50%-40px)] ml-auto
-        ${isEven ? 'md:ml-auto md:pr-[60px]' : 'md:mr-auto md:pl-[60px]'}
-      `}>
-        <div className="border border-[rgba(255,255,255,0.05)] bg-[rgba(5,5,5,0.8)] backdrop-blur-md p-6 md:p-8 lg:p-10 hover:border-[var(--color-accent)] transition-all duration-500 relative overflow-hidden group/card ml-[40px] md:ml-0">
-          
-          {/* Card Hover Tech Grid */}
-          <div className="absolute inset-0 pointer-events-none opacity-0 group-hover/card:opacity-[0.03] bg-[linear-gradient(rgba(255,255,255,0.1)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.1)_1px,transparent_1px)] bg-[size:10px_10px] transition-opacity duration-700"></div>
-          
-          {/* Tech Corners */}
-          <div className="absolute top-0 left-0 w-3 h-3 border-t-2 border-l-2 border-transparent group-hover/card:border-[var(--color-accent)] transition-colors duration-500"></div>
-          <div className="absolute bottom-0 right-0 w-3 h-3 border-b-2 border-r-2 border-transparent group-hover/card:border-[var(--color-accent)] transition-colors duration-500"></div>
+      <div className={`relative ${isEven ? "lg:pl-14" : "lg:order-1 lg:pr-14"}`}>
+        <div className="absolute left-[-2.15rem] top-8 z-30 hidden h-5 w-5 rotate-45 border border-[var(--color-accent)] bg-[#050505] shadow-[0_0_28px_rgba(204,0,0,0.65)] lg:block" />
+        <div className={`absolute top-10 hidden h-px w-12 bg-gradient-to-r from-[var(--color-accent)] to-transparent lg:block ${isEven ? "left-0" : "right-0 rotate-180"}`} />
 
-          {/* Top Tech Bar */}
-          <div className="flex justify-between items-center mb-6 border-b border-[rgba(255,255,255,0.05)] pb-3">
-             <span className="font-mono text-[9px] text-[#555] group-hover/card:text-[var(--color-accent)] uppercase tracking-[0.2em] transition-colors duration-500">
-               LOG_ID: EXP_{String(index+1).padStart(3, '0')}
-             </span>
-             <div className="flex gap-[2px]">
-                <span className="w-1 h-2 bg-[#333] group-hover/card:bg-[var(--color-accent)] transition-colors duration-300 delay-75"></span>
-                <span className="w-1 h-2 bg-[#333] group-hover/card:bg-[var(--color-accent)] transition-colors duration-300 delay-150"></span>
-                <span className="w-1 h-2 bg-[#333] group-hover/card:bg-[var(--color-accent)] transition-colors duration-300 delay-200"></span>
-             </div>
+        <div className="group relative overflow-hidden rounded-[2rem] border border-white/10 bg-[#050505]/80 p-6 backdrop-blur-2xl transition-all duration-500 hover:border-[var(--color-accent)]/80 hover:shadow-[0_26px_80px_rgba(204,0,0,0.14)] md:p-8">
+          <div className="pointer-events-none absolute inset-0 bg-[linear-gradient(rgba(255,255,255,0.06)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.06)_1px,transparent_1px)] bg-[size:18px_18px] opacity-0 transition-opacity duration-700 group-hover:opacity-[0.12]" />
+          <motion.div
+            animate={{ x: ["-120%", "120%"] }}
+            transition={{ duration: 3.2, repeat: Infinity, ease: "linear" }}
+            className="pointer-events-none absolute left-0 top-0 h-full w-1/3 bg-gradient-to-r from-transparent via-white/[0.045] to-transparent opacity-0 transition-opacity duration-500 group-hover:opacity-100"
+          />
+
+          <div className="relative z-10">
+            <div className="mb-6 flex flex-wrap items-center justify-between gap-4 border-b border-white/10 pb-5">
+              <div className="flex items-center gap-4">
+                <div className="flex h-12 w-12 items-center justify-center rounded-2xl border border-white/10 bg-white/[0.04] text-[var(--color-accent)] transition-colors duration-300 group-hover:border-[var(--color-accent)]">
+                  {exp.icon}
+                </div>
+                <div>
+                  <p className="font-mono text-[9px] uppercase tracking-[0.24em] text-[var(--color-accent)]">{exp.accent}</p>
+                  <h3 className="mt-1 font-display text-2xl font-bold leading-tight text-white md:text-3xl">{exp.role}</h3>
+                </div>
+              </div>
+
+              <div className="flex items-center gap-2 rounded-full border border-white/10 bg-white/[0.03] px-3 py-2 font-mono text-[9px] uppercase tracking-[0.18em] text-[#9b9b9b] lg:hidden">
+                <CalendarDays className="h-3.5 w-3.5 text-[var(--color-accent)]" />
+                {exp.date}
+              </div>
+            </div>
+
+            <div className="mb-6 flex items-center gap-2 font-mono text-[10px] uppercase tracking-[0.2em] text-[#8a8a8a]">
+              <Clock className="h-3.5 w-3.5 text-[var(--color-accent)]" />
+              {exp.company}
+            </div>
+
+            <ul className="space-y-4">
+              {exp.bullets.map((bullet) => (
+                <li key={bullet} className="flex gap-3 text-[14px] leading-[1.7] text-[#a7a7a7] transition-colors duration-300 group-hover:text-[#d0d0d0] md:text-[15px]">
+                  <ArrowUpRight className="mt-1 h-4 w-4 shrink-0 text-[var(--color-accent)]" />
+                  <span>{bullet}</span>
+                </li>
+              ))}
+            </ul>
+
+            <div className="mt-7 flex flex-wrap gap-2">
+              {exp.tags.map((tag) => (
+                <span key={tag} className="rounded-full border border-white/10 bg-white/[0.035] px-3 py-1.5 font-mono text-[9px] uppercase tracking-[0.18em] text-[#bdbdbd]">
+                  {tag}
+                </span>
+              ))}
+            </div>
           </div>
-
-          <div className="flex items-center gap-4 mb-6">
-             <div className="p-2 border border-[rgba(255,255,255,0.05)] bg-[rgba(255,255,255,0.02)] group-hover/card:border-[var(--color-accent)] group-hover/card:bg-[rgba(204,0,0,0.05)] transition-colors duration-500">
-               {index === 0 ? <Terminal className="w-5 h-5 text-[#888] group-hover/card:text-[var(--color-accent)] transition-colors" /> : 
-                index === 1 ? <Briefcase className="w-5 h-5 text-[#888] group-hover/card:text-[var(--color-accent)] transition-colors" /> : 
-                <Activity className="w-5 h-5 text-[#888] group-hover/card:text-[var(--color-accent)] transition-colors" />}
-             </div>
-             <div>
-               <h3 className="font-display font-bold text-[22px] sm:text-[26px] text-white leading-[1.1] mb-1">
-                 {exp.role}
-               </h3>
-               <div className="font-mono text-[10px] text-[#A0A0A0] uppercase tracking-[0.2em] flex items-center gap-2">
-                 <Clock className="w-3 h-3 text-[var(--color-accent)]" /> {exp.company}
-               </div>
-             </div>
-          </div>
-
-          <ul className="list-none space-y-4">
-            {exp.bullets.map((bullet: string, i: number) => (
-              <li key={i} className="font-sans text-[14px] md:text-[15px] text-[#808080] leading-[1.6] flex items-start group-hover/card:text-[#A0A0A0] transition-colors duration-300">
-                <span className="text-[var(--color-accent)] mr-3 mt-1 text-[10px]">&diams;</span>
-                {bullet}
-              </li>
-            ))}
-          </ul>
         </div>
       </div>
-
     </motion.div>
   );
 };
 
 export const Experience = () => {
   const containerRef = useRef(null);
-  
   const { scrollYProgress } = useScroll({
     target: containerRef,
-    offset: ["start end", "end start"]
+    offset: ["start end", "end start"],
   });
 
-  const lineHeight = useSpring(useTransform(scrollYProgress, [0.2, 0.8], ["0%", "100%"]), { stiffness: 50, damping: 20 });
-  const yBg = useTransform(scrollYProgress, [0, 1], ["0%", "30%"]);
-  const rotateLabel = useTransform(scrollYProgress, [0, 1], [0, 180]);
-
-  const experiences = [
-    {
-      date: "2026",
-      role: "Website Developer Intern",
-      company: "PT Aliqa Muslim Indonesia \u00B7 Hybrid",
-      bullets: [
-        "Built and developed company website (front-end & back-end).",
-        "Conducted testing, debugging, and iteration cycles.",
-        "Project-based internship focused on progressive web application design and rapid prototyping."
-      ]
-    },
-    {
-      date: "2024",
-      role: "Freelance Web Developer",
-      company: "Remote \u00B7 Global",
-      bullets: [
-        "Built responsive, functional websites using scalable modern web stacks.",
-        "Performed maintenance, debugging, and performance optimization.",
-        "Translated complex client requirements into effective, polished interactive features."
-      ]
-    },
-    {
-      date: "2024",
-      role: "Data Research Specialist",
-      company: "Remote \u00B7 Contract",
-      bullets: [
-        "Collected and validated complex datasets from multiple credible sources.",
-        "Analyzed raw datasets, presenting insights through rich visual spreadsheet reports.",
-        "Provided data-driven recommendations that guided strategic client decisions."
-      ]
-    },
-    {
-      date: "02-Prs",
-      role: "Staff Team Reviewer",
-      company: "Satria Muda \u00B7 Telkom Prwt",
-      bullets: [
-        "Systematically reviewed and evaluated performance metrics and content quality.",
-        "Established and ensured cross-functional organizational standards were consistently met."
-      ]
-    }
-  ];
+  const fillHeight = useSpring(useTransform(scrollYProgress, [0.18, 0.82], ["0%", "100%"]), {
+    stiffness: 70,
+    damping: 24,
+  });
+  const bgY = useTransform(scrollYProgress, [0, 1], ["-4%", "12%"]);
+  const rotate = useTransform(scrollYProgress, [0, 1], [0, 240]);
 
   return (
-    <section ref={containerRef} className="w-full px-4 md:px-12 lg:px-20 py-32 relative border-t border-[rgba(255,255,255,0.05)] bg-[#030303] overflow-hidden">
-      
-      {/* Background Decor */}
-      <motion.div 
-        style={{ y: yBg }} 
-        className="absolute top-0 right-[-10%] select-none pointer-events-none opacity-[0.02]"
-      >
-         <div className="font-display font-black text-[30vw] leading-none uppercase tracking-tighter text-white whitespace-nowrap">
-           RUNTIME
-         </div>
+    <section
+      ref={containerRef}
+      className="relative w-full overflow-hidden border-t border-white/[0.06] bg-[#020202] px-4 py-28 text-white sm:px-6 md:px-12 lg:px-20 lg:py-36"
+    >
+      <motion.div style={{ y: bgY }} className="pointer-events-none absolute inset-0 opacity-[0.06]">
+        <div className="absolute inset-0 bg-[linear-gradient(rgba(255,255,255,0.08)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.08)_1px,transparent_1px)] bg-[size:60px_60px] [mask-image:radial-gradient(circle_at_center,black,transparent_70%)]" />
       </motion.div>
 
-      {/* Header Area */}
-      <div className="relative z-20 max-w-[1600px] mx-auto flex flex-col md:flex-row items-center md:items-end justify-between mb-24 md:mb-40 gap-8">
-        <div>
-          <motion.div 
-            initial={{ opacity: 0, x: -20 }}
-            whileInView={{ opacity: 1, x: 0 }}
-            viewport={{ once: true }}
-            className="font-mono text-[10px] text-[var(--color-accent)] mb-6 uppercase tracking-[0.3em] flex items-center gap-3 border-l-2 border-[var(--color-accent)] pl-4"
-          >
-            <span className="w-2 h-2 bg-[var(--color-accent)] shadow-[0_0_10px_var(--color-accent)] animate-pulse"></span>
-            03 &mdash; Career Timeline
-          </motion.div>
-          <motion.h2 
-            initial={{ opacity: 0, y: 20 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-            className="font-display font-black text-[56px] sm:text-[72px] lg:text-[100px] text-white leading-[0.8] tracking-tighter uppercase relative"
-          >
-            EXPERIENCE<span className="text-[var(--color-accent)]">.</span>
-            <span className="absolute -bottom-6 left-0 w-32 h-[4px] bg-[var(--color-accent)]"></span>
-          </motion.h2>
-        </div>
-        
-        <motion.div 
-          style={{ rotate: rotateLabel }}
-           className="w-16 h-16 md:w-24 md:h-24 border border-[rgba(255,255,255,0.1)] rounded-full flex items-center justify-center border-dashed relative shrink-0"
-        >
-          <div className="absolute inset-0 m-auto w-1 h-1 bg-[var(--color-accent)] rounded-full"></div>
-        </motion.div>
+      <div className="pointer-events-none absolute -right-40 top-20 h-[620px] w-[620px] rounded-full bg-[radial-gradient(circle,rgba(204,0,0,0.17),transparent_64%)] blur-3xl" />
+      <div className="pointer-events-none absolute left-[-5%] top-24 font-display text-[22vw] font-black uppercase leading-none tracking-[-0.08em] text-white/[0.025]">
+        Runtime
       </div>
 
-      {/* Timeline Section */}
-      <div className="relative z-10 max-w-[1600px] mx-auto w-full">
-        
-        {/* Main Central Vertical Line */}
-        <div className="absolute top-0 bottom-0 left-[28px] md:left-1/2 w-[1px] bg-[rgba(255,255,255,0.05)] ml-[3px] md:-ml-[0.5px]"></div>
-        
-        {/* Animated fill line */}
-        <motion.div 
-          style={{ height: lineHeight }} 
-          className="absolute top-0 left-[28px] md:left-1/2 w-[3px] bg-gradient-to-b from-[var(--color-accent)] to-transparent ml-[2px] md:-ml-[1.5px] shadow-[0_0_15px_var(--color-accent)] z-20 origin-top"
-        ></motion.div>
+      <div className="relative z-10 mx-auto max-w-[1600px]">
+        <motion.div
+          variants={headerItem}
+          initial="hidden"
+          whileInView="visible"
+          viewport={{ once: true, margin: "-10%" }}
+          className="mb-20 grid items-end gap-8 lg:grid-cols-[1fr_360px]"
+        >
+          <div>
+            <div className="mb-7 flex items-center gap-3 border-l-2 border-[var(--color-accent)] pl-4 font-mono text-[10px] uppercase tracking-[0.3em] text-[var(--color-accent)]">
+              <span className="h-2.5 w-2.5 rounded-full bg-[var(--color-accent)] shadow-[0_0_20px_rgba(204,0,0,0.9)]" />
+              03 — Experience Timeline
+            </div>
+            <h2 className="font-display text-[clamp(3.4rem,8.5vw,8rem)] font-black uppercase leading-[0.82] tracking-[-0.08em]">
+              Experience<span className="text-[var(--color-accent)]">.</span>
+            </h2>
+            <p className="mt-7 max-w-2xl text-[15px] leading-[1.8] text-[#9b9b9b] md:text-[17px]">
+              A runtime log of internships, freelance projects, data work, and organization experience, redesigned as a modern interactive timeline.
+            </p>
+          </div>
 
-        <div className="relative z-30 pt-10">
-          {experiences.map((exp, idx) => (
-            <ExperienceCard key={idx} exp={exp} index={idx} />
-          ))}
+          <FloatingPanel className="p-5">
+            <div className="flex items-center justify-between gap-4">
+              <div>
+                <p className="font-mono text-[9px] uppercase tracking-[0.24em] text-[var(--color-accent)]">Career Signal</p>
+                <p className="mt-2 font-display text-2xl font-bold">4 Active Logs</p>
+              </div>
+              <motion.div style={{ rotate }} className="relative flex h-20 w-20 items-center justify-center rounded-full border border-dashed border-white/15">
+                <ScanLine className="h-9 w-9 text-[var(--color-accent)]" strokeWidth={1.2} />
+                <div className="absolute inset-0 m-auto h-2 w-2 rounded-full bg-[var(--color-accent)]" />
+              </motion.div>
+            </div>
+
+            <div className="mt-6 grid grid-cols-3 gap-2">
+              {[
+                { label: "Web", icon: Layers3 },
+                { label: "Data", icon: LineChart },
+                { label: "Team", icon: GitBranch },
+              ].map(({ label, icon: Icon }) => (
+                <div key={label} className="rounded-2xl border border-white/10 bg-black/30 p-3 text-center">
+                  <Icon className="mx-auto mb-2 h-4 w-4 text-[var(--color-accent)]" />
+                  <p className="font-mono text-[9px] uppercase tracking-[0.16em] text-[#aaa]">{label}</p>
+                </div>
+              ))}
+            </div>
+          </FloatingPanel>
+        </motion.div>
+
+        <div className="relative">
+          <div className="absolute bottom-0 left-4 top-0 hidden w-px bg-white/10 lg:left-1/2 lg:block" />
+          <motion.div
+            style={{ height: fillHeight }}
+            className="absolute left-4 top-0 hidden w-[3px] origin-top bg-gradient-to-b from-[var(--color-accent)] via-[var(--color-accent)] to-transparent shadow-[0_0_22px_rgba(204,0,0,0.8)] lg:left-1/2 lg:block lg:-ml-px"
+          />
+
+          <div className="relative z-10">
+            {experiences.map((exp, index) => (
+              <ExperienceCard key={exp.accent} exp={exp} index={index} />
+            ))}
+          </div>
         </div>
-        
+
+        <div className="mt-14 flex items-center justify-center gap-3 font-mono text-[9px] uppercase tracking-[0.25em] text-[#666]">
+          <Activity className="h-4 w-4 text-[var(--color-accent)]" />
+          Timeline Sync Complete
+        </div>
       </div>
     </section>
   );

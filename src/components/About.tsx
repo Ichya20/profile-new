@@ -1,56 +1,93 @@
-import { motion, useScroll, useTransform, useSpring, useMotionValue } from "motion/react";
-import React, { useRef, ReactNode } from "react";
-import { Terminal, Database, BrainCircuit, Code2, Crosshair, Fingerprint } from "lucide-react";
+import { motion, useMotionValue, useScroll, useSpring, useTransform } from "motion/react";
+import type { Variants } from "motion/react";
+import React, { ReactNode, useRef } from "react";
+import {
+  BrainCircuit,
+  Code2,
+  Crosshair,
+  Database,
+  Eye,
+  Fingerprint,
+  Layers3,
+  Radar,
+  Server,
+  Sparkles,
+} from "lucide-react";
 
-const AnimatedText = ({ text, className = "" }: { text: string; className?: string }) => {
-  return (
-    <motion.div
-      initial="hidden"
-      whileInView="visible"
-      viewport={{ once: true, margin: "-10%" }}
-      variants={{
-        visible: { transition: { staggerChildren: 0.015 } },
-        hidden: {}
-      }}
-      className={`relative ${className}`}
-    >
-      <span className="text-[var(--color-accent)] mr-2 select-none font-bold">&gt;</span>
-      {text.split(" ").map((word, i) => (
-        <motion.span
-          key={i}
-          className="inline-block mr-[0.25em]"
-          variants={{
-            hidden: { opacity: 0, y: 10, filter: "blur(4px)" },
-            visible: { opacity: 1, y: 0, filter: "blur(0px)", transition: { ease: [0.16, 1, 0.3, 1], duration: 0.6 } }
-          }}
-        >
-          {word}
-        </motion.span>
-      ))}
-      <motion.span 
-        variants={{
-          hidden: { opacity: 0 },
-          visible: { opacity: 1, transition: { delay: 1 } }
-        }}
-        className="inline-block w-[6px] h-[1em] bg-[var(--color-accent)] ml-1 align-middle animate-pulse"
-      />
-    </motion.div>
-  );
+const cardEase = [0.16, 1, 0.3, 1] as const;
+
+const container: Variants = {
+  hidden: { opacity: 0 },
+  visible: {
+    opacity: 1,
+    transition: { staggerChildren: 0.08, delayChildren: 0.12 },
+  },
 };
 
-const InteractiveCard: React.FC<{ children: ReactNode, delay?: number, className?: string, title?: string }> = ({ children, delay = 0, className = "", title }) => {
+const item: Variants = {
+  hidden: { opacity: 0, y: 28, filter: "blur(10px)" },
+  visible: {
+    opacity: 1,
+    y: 0,
+    filter: "blur(0px)",
+    transition: { duration: 0.72, ease: cardEase },
+  },
+};
+
+const interests = [
+  {
+    title: "AI Engineering",
+    desc: "Building AI-powered systems that can be used directly in real-world applications.",
+    icon: BrainCircuit,
+  },
+  {
+    title: "Machine Learning",
+    desc: "Learning models, datasets, training workflows, evaluation methods, and practical machine learning implementation.",
+    icon: Sparkles,
+  },
+  {
+    title: "Computer Vision",
+    desc: "Interested in image processing, face recognition, object detection, and OCR.",
+    icon: Eye,
+  },
+  {
+    title: "Data & Automation",
+    desc: "Processing data, creating automated workflows, and building efficient tools.",
+    icon: Database,
+  },
+  {
+    title: "Full-Stack AI App",
+    desc: "Combining frontend, backend, databases, and AI into complete applications.",
+    icon: Layers3,
+  },
+  {
+    title: "Backend System",
+    desc: "Building clean server structures, APIs, and secure data integrations.",
+    icon: Server,
+  },
+];
+
+const stack = ["React", "TypeScript", "Python", "Firebase", "Machine Learning", "Computer Vision", "OCR", "AI Engineering"];
+
+const BentoCard = ({
+  children,
+  className = "",
+  delay = 0,
+}: {
+  children: ReactNode;
+  className?: string;
+  delay?: number;
+}) => {
   const x = useMotionValue(0);
   const y = useMotionValue(0);
 
-  const mouseXSpring = useSpring(x, { stiffness: 150, damping: 15, mass: 0.1 });
-  const mouseYSpring = useSpring(y, { stiffness: 150, damping: 15, mass: 0.1 });
+  const springX = useSpring(x, { stiffness: 150, damping: 18, mass: 0.12 });
+  const springY = useSpring(y, { stiffness: 150, damping: 18, mass: 0.12 });
 
-  const handleMouseMove = (e: React.MouseEvent<HTMLDivElement, MouseEvent>) => {
+  const handleMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
     const rect = e.currentTarget.getBoundingClientRect();
-    const mouseX = e.clientX - rect.left - rect.width / 2;
-    const mouseY = e.clientY - rect.top - rect.height / 2;
-    x.set(mouseX * 0.1);
-    y.set(mouseY * 0.1);
+    x.set((e.clientX - rect.left - rect.width / 2) * 0.045);
+    y.set((e.clientY - rect.top - rect.height / 2) * 0.045);
   };
 
   const handleMouseLeave = () => {
@@ -60,202 +97,162 @@ const InteractiveCard: React.FC<{ children: ReactNode, delay?: number, className
 
   return (
     <motion.div
-      initial={{ opacity: 0, scale: 0.95, filter: "blur(10px)" }}
-      whileInView={{ opacity: 1, scale: 1, filter: "blur(0px)" }}
-      viewport={{ once: true, margin: "-10%" }}
-      transition={{ duration: 0.6, delay, ease: [0.16, 1, 0.3, 1] }}
+      variants={item}
+      transition={{ delay }}
+      style={{ x: springX, y: springY }}
       onMouseMove={handleMouseMove}
       onMouseLeave={handleMouseLeave}
-      style={{ x: mouseXSpring, y: mouseYSpring }}
-      className={`group relative overflow-hidden bg-[#050505] border border-[rgba(255,255,255,0.06)] hover:border-[var(--color-accent)] transition-colors duration-500 z-10 ${className}`}
+      className={`group relative overflow-hidden rounded-[2rem] border border-white/10 bg-white/[0.025] backdrop-blur-2xl shadow-[inset_0_1px_0_rgba(255,255,255,0.08)] transition-colors duration-500 hover:border-[var(--color-accent)]/70 ${className}`}
     >
-      <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,var(--color-accent)_0%,transparent_60%)] opacity-0 group-hover:opacity-[0.03] transition-opacity duration-700 pointer-events-none" />
-      
-      {/* Tech Corners */}
-      <div className="absolute top-0 left-0 w-3 h-3 border-t border-l border-transparent group-hover:border-[var(--color-accent)] transition-colors duration-500 z-20 pointer-events-none"></div>
-      <div className="absolute bottom-0 right-0 w-3 h-3 border-b border-r border-transparent group-hover:border-[var(--color-accent)] transition-colors duration-500 z-20 pointer-events-none"></div>
-
-      {title && (
-        <div className="absolute top-0 right-0 bg-[var(--color-accent)] text-black font-mono text-[9px] font-bold px-2 py-1 uppercase tracking-widest translate-x-full group-hover:translate-x-0 transition-transform duration-500 z-20 shadow-[-4px_0_10px_rgba(204,0,0,0.2)]">
-          {title}
-        </div>
-      )}
-
-      {/* Ghosting scanline effect on hover */}
-      <motion.div
-        animate={{ translateY: ['-100%', '300%'] }}
-        transition={{ duration: 1.5, repeat: Infinity, ease: 'linear' }}
-        className="absolute top-0 left-0 w-full h-[30%] bg-gradient-to-b from-transparent via-[rgba(255,255,255,0.03)] to-transparent pointer-events-none opacity-0 group-hover:opacity-100"
-      />
+      <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_top_right,rgba(204,0,0,0.18),transparent_42%)] opacity-0 transition-opacity duration-700 group-hover:opacity-100" />
+      <div className="pointer-events-none absolute inset-0 bg-[linear-gradient(rgba(255,255,255,0.06)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.06)_1px,transparent_1px)] bg-[size:22px_22px] opacity-0 transition-opacity duration-700 group-hover:opacity-[0.13]" />
+      <div className="absolute left-0 top-0 h-5 w-5 border-l border-t border-[var(--color-accent)]/0 transition-colors duration-500 group-hover:border-[var(--color-accent)]" />
+      <div className="absolute bottom-0 right-0 h-5 w-5 border-b border-r border-[var(--color-accent)]/0 transition-colors duration-500 group-hover:border-[var(--color-accent)]" />
       <div className="relative z-10">{children}</div>
     </motion.div>
   );
 };
 
 export const About = () => {
-  const containerRef = useRef(null);
+  const sectionRef = useRef(null);
   const { scrollYProgress } = useScroll({
-    target: containerRef,
-    offset: ["start end", "end start"]
+    target: sectionRef,
+    offset: ["start end", "end start"],
   });
 
-  const yVerticalText = useTransform(scrollYProgress, [0, 1], [0, -250]);
-  const rotateWheel = useTransform(scrollYProgress, [0, 1], [0, 270]);
-  const yParallax = useTransform(scrollYProgress, [0, 1], [50, -50]);
-
-  const stats = [
-    { value: "03+", label: "Years Coding", icon: <Code2 /> },
-    { value: "10+", label: "System Projects", icon: <Terminal /> },
-    { value: "02", label: "Dev Internships", icon: <Database /> },
-    { value: "01", label: "AI Frameworks", icon: <BrainCircuit /> }
-  ];
+  const gridY = useTransform(scrollYProgress, [0, 1], ["-8%", "10%"]);
+  const titleY = useTransform(scrollYProgress, [0, 1], [70, -70]);
+  const rotateRadar = useTransform(scrollYProgress, [0, 1], [0, 260]);
+  const lineScale = useSpring(useTransform(scrollYProgress, [0.12, 0.72], [0, 1]), {
+    stiffness: 70,
+    damping: 24,
+  });
 
   return (
-    <section ref={containerRef} className="bg-[#030303] w-full px-6 md:px-12 lg:px-20 py-32 relative border-t border-[rgba(255,255,255,0.05)] overflow-hidden font-sans">
-      
-      {/* Raw Background Grid Lines */}
-      <div className="absolute inset-0 z-0 pointer-events-none overflow-hidden opacity-[0.05] max-w-[1600px] mx-auto mix-blend-screen">
-        <div className="absolute top-0 right-[15%] w-[1px] h-full bg-[linear-gradient(to_bottom,transparent,white,transparent)]"></div>
-        <div className="absolute top-0 left-[15%] w-[1px] h-full bg-white border-l border-dashed opacity-20"></div>
-        <div className="absolute top-[20%] left-0 w-[15%] h-[1px] bg-[linear-gradient(to_right,transparent,white,white)]"></div>
-        <div className="absolute top-[75%] right-0 w-[15%] h-[1px] bg-[linear-gradient(to_left,transparent,white,white)]"></div>
-        <div className="absolute top-[40%] left-[10%] font-mono text-[8px] uppercase text-white tracking-[0.2em] transform -rotate-90">SYS.ON</div>
-        <div className="absolute bottom-[20%] right-[10%] font-mono text-[10px] uppercase text-[var(--color-accent)] tracking-[0.2em] animate-pulse">[ AUTH_OK ]</div>
-      </div>
+    <section
+      ref={sectionRef}
+      className="relative w-full overflow-hidden border-t border-white/[0.06] bg-[#020202] px-4 py-28 text-white sm:px-6 md:px-12 lg:px-20 lg:py-36"
+    >
+      <motion.div
+        style={{ y: gridY }}
+        className="pointer-events-none absolute inset-0 opacity-[0.08]"
+      >
+        <div className="absolute inset-0 bg-[linear-gradient(rgba(255,255,255,0.08)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.08)_1px,transparent_1px)] bg-[size:54px_54px] [mask-image:radial-gradient(circle_at_center,black,transparent_72%)]" />
+      </motion.div>
 
-      <div className="flex flex-col lg:flex-row gap-16 lg:gap-12 relative z-10 max-w-[1600px] mx-auto">
-        
-        {/* Left Column (Sticky Identity Block) */}
-        <div className="lg:w-[40%] flex flex-col relative shrink-0">
-          <div className="lg:sticky lg:top-32 lg:pb-32">
-            
-            <motion.div 
+      <div className="pointer-events-none absolute -left-40 top-1/4 h-[520px] w-[520px] rounded-full bg-[radial-gradient(circle,rgba(204,0,0,0.18),transparent_64%)] blur-3xl" />
+      <div className="pointer-events-none absolute right-0 top-0 h-full w-px bg-gradient-to-b from-transparent via-[var(--color-accent)]/30 to-transparent" />
+
+      <div className="relative z-10 mx-auto grid max-w-[1600px] gap-12 lg:grid-cols-[0.92fr_1.08fr] lg:gap-16">
+        <div className="relative">
+          <div className="lg:sticky lg:top-28">
+            <motion.div
               initial={{ opacity: 0, x: -20 }}
               whileInView={{ opacity: 1, x: 0 }}
-              viewport={{ once: true }}
-              transition={{ duration: 0.6 }}
-              className="font-mono text-[10px] text-[var(--color-accent)] mb-8 uppercase tracking-[0.3em] flex items-center gap-3 border-l-2 border-[var(--color-accent)] pl-4"
+              viewport={{ once: true, margin: "-10%" }}
+              transition={{ duration: 0.7, ease: cardEase }}
+              className="mb-7 flex items-center gap-3 border-l-2 border-[var(--color-accent)] pl-4 font-mono text-[10px] uppercase tracking-[0.3em] text-[var(--color-accent)]"
             >
-              <div className="relative flex items-center justify-center">
-                <span className="w-2 h-2 rounded-full bg-[var(--color-accent)] absolute animate-ping"></span>
-                <span className="w-2 h-2 rounded-full bg-[var(--color-accent)] relative"></span>
-              </div>
-              01 &mdash; Identification
+              <span className="relative flex h-2.5 w-2.5">
+                <span className="absolute h-full w-full animate-ping rounded-full bg-[var(--color-accent)] opacity-70" />
+                <span className="relative h-2.5 w-2.5 rounded-full bg-[var(--color-accent)]" />
+              </span>
+              01 — About Me
             </motion.div>
 
-            <motion.h2 
-              initial={{ opacity: 0, y: 20 }}
+            <motion.h2
+              style={{ y: titleY }}
+              initial={{ opacity: 0, y: 24 }}
               whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
-              transition={{ duration: 0.8, delay: 0.1 }}
-              className="font-display font-black text-[56px] sm:text-[72px] lg:text-[84px] xl:text-[100px] leading-[0.85] tracking-tighter uppercase mb-6 group cursor-crosshair relative"
+              viewport={{ once: true, margin: "-10%" }}
+              transition={{ duration: 0.85, ease: cardEase }}
+              className="font-display text-[clamp(3.5rem,9vw,8.5rem)] font-black uppercase leading-[0.82] tracking-[-0.08em]"
             >
-              <span className="block text-white transition-transform duration-500 group-hover:translate-x-2">WHO.</span>
-              <span className="block text-transparent bg-clip-text text-white drop-shadow-[0_0_12px_rgba(255,255,255,0.15)] transition-transform duration-500 delay-75 group-hover:translate-x-4" style={{ WebkitTextStroke: '2px rgba(255,255,255,0.1)', WebkitTextFillColor: 'transparent' }}>IS</span>
-              <span className="block text-white transition-transform duration-500 delay-150 group-hover:translate-x-6 relative">
-                 I.U. <span className="text-[var(--color-accent)] animate-pulse">_</span>
+              <span className="block">About</span>
+              <span className="block text-transparent [-webkit-text-stroke:1px_rgba(255,255,255,0.72)] sm:[-webkit-text-stroke:2px_rgba(255,255,255,0.72)]">
+                Me
               </span>
+              <span className="text-[var(--color-accent)]">.</span>
             </motion.h2>
 
-            {/* Scrolling Tracker Wheel */}
-            <motion.div style={{ rotate: rotateWheel }} className="relative w-24 h-24 sm:w-32 sm:h-32 opacity-30 hidden lg:block">
-              <Crosshair className="w-full h-full text-[var(--color-accent)] absolute inset-0 mix-blend-screen" strokeWidth={0.5} />
-              <div className="absolute inset-0 border border-[var(--color-accent)] rounded-full"></div>
-              <div className="absolute inset-2 border border-white border-dashed rounded-full opacity-50"></div>
-              <div className="absolute top-1/2 left-1/2 w-[150%] h-[1px] bg-white -translate-x-1/2 -translate-y-1/2 opacity-20"></div>
-              <div className="absolute top-1/2 left-1/2 h-[150%] w-[1px] bg-white -translate-x-1/2 -translate-y-1/2 opacity-20"></div>
-              <motion.div style={{ rotate: useTransform(rotateWheel, v => -v * 2) }} className="absolute -inset-4 border border-dotted border-[var(--color-accent)] rounded-full opacity-50"></motion.div>
-            </motion.div>
+            <div className="mt-10 flex items-center gap-6">
+              <motion.div
+                style={{ rotate: rotateRadar }}
+                className="relative h-24 w-24 rounded-full border border-dashed border-white/15"
+              >
+                <Radar className="absolute inset-0 m-auto h-16 w-16 text-[var(--color-accent)]/70" strokeWidth={1} />
+                <Crosshair className="absolute inset-0 m-auto h-full w-full text-white/10" strokeWidth={0.8} />
+                <div className="absolute inset-0 m-auto h-2 w-2 rounded-full bg-[var(--color-accent)] shadow-[0_0_24px_rgba(204,0,0,0.9)]" />
+              </motion.div>
 
+              <div className="max-w-[280px] font-mono text-[10px] uppercase tracking-[0.22em] text-[#777]">
+                Focused on AI engineering, machine learning, computer vision, and application development.
+              </div>
+            </div>
           </div>
-
-          {/* Vertical Scrolling Marquee Text */}
-          <motion.div style={{ y: yVerticalText }} className="absolute -left-8 md:-left-20 top-[60%] text-[10px] font-mono tracking-[0.4em] uppercase text-[#333] -rotate-90 origin-top-left whitespace-nowrap hidden sm:block pointer-events-none select-none">
-            HUMAN &bull; DEVELOPER &bull; DESIGNER &bull; ENGINEER &bull; SYSTEM_ACTIVE
-          </motion.div>
         </div>
 
-        {/* Right Column (Content Grid & Stats) */}
-        <div className="lg:w-[60%] flex flex-col gap-6 lg:mt-32">
-          
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <InteractiveCard delay={0.1} title="SYS_INFO" className="p-8 md:p-10">
-              <div className="flex items-center gap-3 mb-6">
-                 <Fingerprint className="w-5 h-5 text-[var(--color-accent)] opacity-80" strokeWidth={1.5} />
-                 <h3 className="font-mono text-[11px] uppercase tracking-[0.2em] text-[#808080] group-hover:text-[var(--color-accent)] transition-colors">Background Data</h3>
-              </div>
-              <AnimatedText 
-                text="Undergraduate student pursuing a Bachelor's degree in Informatics Engineering at Telkom University Purwokerto. Deeply focused on system architecture and building robust digital solutions that scale."
-                className="font-sans text-[15px] sm:text-[16px] text-[#A0A0A0] leading-[1.7] group-hover:text-white transition-colors duration-500" 
-              />
-            </InteractiveCard>
-
-            <InteractiveCard delay={0.2} title="EXP_AREA" className="p-8 md:p-10 md:translate-y-12">
-              <div className="flex items-center gap-3 mb-6">
-                 <BrainCircuit className="w-5 h-5 text-[var(--color-accent)] opacity-80" strokeWidth={1.5} />
-                 <h3 className="font-mono text-[11px] uppercase tracking-[0.2em] text-[#808080] group-hover:text-[var(--color-accent)] transition-colors">Experience Area</h3>
-              </div>
-              <AnimatedText 
-                text="Freelance web development, remote data research, and collaborative internships. Passionate about integrating cutting-edge AI Engineering principles into scalable full-stack applications."
-                className="font-sans text-[15px] sm:text-[16px] text-[#A0A0A0] leading-[1.7] group-hover:text-white transition-colors duration-500" 
-              />
-            </InteractiveCard>
-          </div>
-
-          {/* Stats Bento Grid */}
-          <motion.div style={{ y: yParallax }} className="grid grid-cols-2 sm:grid-cols-4 gap-4 mt-12 md:mt-24 pt-8 md:pt-0">
-            {stats.map((stat, idx) => (
-              <InteractiveCard key={idx} delay={0.3 + (idx * 0.1)} className="p-6 flex flex-col items-center justify-center text-center">
-                <div className="mb-4 text-[#444] group-hover:text-[var(--color-accent)] transition-colors duration-500 transform group-hover:scale-110 group-hover:-rotate-3">
-                  {stat.icon}
+        <motion.div
+          variants={container}
+          initial="hidden"
+          whileInView="visible"
+          viewport={{ once: true, margin: "-8%" }}
+          className="grid gap-5 md:grid-cols-2"
+        >
+          <BentoCard className="p-7 md:col-span-2 md:p-9">
+            <div className="mb-6 flex items-center justify-between gap-4">
+              <div className="flex items-center gap-3">
+                <div className="rounded-2xl border border-white/10 bg-white/[0.04] p-3">
+                  <Fingerprint className="h-5 w-5 text-[var(--color-accent)]" />
                 </div>
-                <span className="font-display font-medium text-[36px] md:text-[44px] text-white leading-none mb-2 tracking-tighter mix-blend-difference">
-                  {stat.value}
-                </span>
-                <span className="font-mono text-[9px] uppercase tracking-[0.1em] text-[#666] group-hover:text-[#aaa] transition-colors">
-                  {stat.label}
-                </span>
-              </InteractiveCard>
-            ))}
-          </motion.div>
-
-          {/* Highlight / Achievement Box */}
-          <motion.div 
-            initial={{ opacity: 0, y: 30 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true, margin: "-10%" }}
-            transition={{ duration: 0.9, ease: [0.16, 1, 0.3, 1], delay: 0.6 }}
-            className="mt-12 md:mt-20 flex flex-col sm:flex-row items-stretch border border-[rgba(255,255,255,0.05)] overflow-hidden group hover:border-[var(--color-accent)] transition-colors relative isolate bg-[rgba(5,5,5,0.6)] backdrop-blur-sm"
-          >
-            <div className="bg-[rgba(204,0,0,0.1)] text-[var(--color-accent)] border-b sm:border-b-0 sm:border-r border-[rgba(255,255,255,0.05)] font-display font-bold px-8 py-6 flex items-center justify-center text-[32px] overflow-hidden relative group-hover:bg-[var(--color-accent)] group-hover:text-black transition-colors duration-500">
-               <motion.span 
-                 whileHover={{ rotate: 180, scale: 1.2 }}
-                 transition={{ duration: 0.5, type: "spring" }}
-                 className="inline-block cursor-crosshair relative z-10"
-               >
-                 &#9733;
-               </motion.span>
-               <div className="absolute inset-0 bg-[linear-gradient(45deg,transparent_25%,rgba(255,255,255,0.1)_50%,transparent_75%)] bg-[length:10px_10px] opacity-20 group-hover:opacity-100 transition-opacity" />
+                <div>
+                  <p className="font-mono text-[10px] uppercase tracking-[0.25em] text-[var(--color-accent)]">Profile</p>
+                  <h3 className="mt-1 font-display text-2xl font-bold text-white md:text-3xl">Ichya Ulumiddiin</h3>
+                </div>
+              </div>
+              <Code2 className="hidden h-10 w-10 text-white/10 md:block" />
             </div>
-            <div className="flex-1 px-6 sm:px-8 py-6 md:py-8 flex flex-col justify-center relative overflow-hidden">
-                <motion.div 
-                    animate={{ x: ["-100%", "200%"] }} 
-                    transition={{ duration: 4, repeat: Infinity, ease: "linear" }}
-                    className="absolute top-0 left-0 w-[30%] h-[1px] bg-gradient-to-r from-transparent via-[var(--color-accent)] to-transparent opacity-50"
-                />
-                <span className="font-mono text-[10px] text-[rgba(255,255,255,0.4)] uppercase tracking-[0.3em] mb-3 block group-hover:text-[rgba(255,255,255,0.6)] transition-colors">
-                  Achievement // 2024
-                </span>
-                <span className="font-mono text-[13px] sm:text-[15px] text-[var(--color-accent)] uppercase tracking-[0.2em] font-bold block mb-1">
-                  Lulusan Terbaik MIPA
-                </span>
-                <span className="font-mono text-[11px] sm:text-[12px] text-white uppercase tracking-[0.1em] opacity-80">
-                  SMAN 01 Tanjung
-                </span>
-            </div>
-          </motion.div>
 
-        </div>
+            <p className="max-w-3xl text-[15px] leading-[1.8] text-[#a7a7a7] md:text-[17px]">
+              An Informatics student at Telkom University Purwokerto with a strong interest in AI Engineering, Machine Learning, Computer Vision, and full-stack application development. I enjoy building systems that connect web interfaces, backend services, databases, and AI models into practical real-world applications.
+            </p>
+
+            <div className="mt-8 h-px w-full overflow-hidden bg-white/10">
+              <motion.div
+                style={{ scaleX: lineScale, transformOrigin: "left" }}
+                className="h-full w-full bg-gradient-to-r from-[var(--color-accent)] to-transparent"
+              />
+            </div>
+          </BentoCard>
+
+          <BentoCard className="p-7 md:col-span-2 md:p-9">
+            <div className="mb-7 flex items-center gap-3">
+              <BrainCircuit className="h-5 w-5 text-[var(--color-accent)]" />
+              <p className="font-mono text-[10px] uppercase tracking-[0.25em] text-[#8a8a8a]">Interest</p>
+            </div>
+
+            <div className="grid gap-4 md:grid-cols-2">
+              {interests.map(({ title, desc, icon: Icon }) => (
+                <div key={title} className="rounded-2xl border border-white/10 bg-black/30 p-5 transition-colors duration-300 hover:border-[var(--color-accent)]/60">
+                  <Icon className="mb-4 h-5 w-5 text-[var(--color-accent)]" />
+                  <h4 className="font-display text-lg font-bold text-white">{title}</h4>
+                  <p className="mt-3 text-[14px] leading-[1.7] text-[#bdbdbd]">{desc}</p>
+                </div>
+              ))}
+            </div>
+
+            <div className="mt-7 flex flex-wrap gap-2">
+              {stack.map((item) => (
+                <span
+                  key={item}
+                  className="rounded-full border border-white/10 bg-white/[0.035] px-3 py-2 font-mono text-[9px] uppercase tracking-[0.18em] text-[#c7c7c7]"
+                >
+                  {item}
+                </span>
+              ))}
+            </div>
+          </BentoCard>
+        </motion.div>
       </div>
     </section>
   );
