@@ -1,237 +1,175 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useState } from "react";
+import { motion } from "motion/react";
+import type { Variants } from "motion/react";
+import { Braces, Check, Code2, Cpu, Database, Sparkles } from "lucide-react";
 
 type WelcomeScreenProps = {
   onFinish: () => void;
 };
 
+const ease = [0.16, 1, 0.3, 1] as const;
+
+const container: Variants = {
+  hidden: { opacity: 0 },
+  visible: {
+    opacity: 1,
+    transition: { staggerChildren: 0.1, delayChildren: 0.12 },
+  },
+};
+
+const item: Variants = {
+  hidden: { opacity: 0, y: 18, filter: "blur(10px)" },
+  visible: {
+    opacity: 1,
+    y: 0,
+    filter: "blur(0px)",
+    transition: { duration: 0.64, ease },
+  },
+};
+
+const bootItems = [
+  { label: "Interface", icon: Code2 },
+  { label: "Database", icon: Database },
+  { label: "AI Layer", icon: Cpu },
+  { label: "Ready", icon: Sparkles },
+];
+
 export default function WelcomeScreen({ onFinish }: WelcomeScreenProps) {
   const [progress, setProgress] = useState(0);
   const [leaving, setLeaving] = useState(false);
 
-  const particles = useMemo(
-    () =>
-      Array.from({ length: 38 }, (_, index) => ({
-        id: index,
-        left: Math.random() * 100,
-        top: Math.random() * 100,
-        delay: Math.random() * 2.5,
-        duration: 2.5 + Math.random() * 4,
-        size: 2 + Math.random() * 4,
-      })),
-    []
-  );
-
   useEffect(() => {
-    const progressTimer = setInterval(() => {
+    const progressTimer = window.setInterval(() => {
       setProgress((prev) => {
         if (prev >= 100) {
-          clearInterval(progressTimer);
+          window.clearInterval(progressTimer);
 
-          setTimeout(() => {
+          window.setTimeout(() => {
             setLeaving(true);
 
-            setTimeout(() => {
+            window.setTimeout(() => {
               onFinish();
-            }, 850);
-          }, 650);
+            }, 650);
+          }, 450);
 
           return 100;
         }
 
-        return Math.min(prev + Math.floor(Math.random() * 8 + 3), 100);
+        return Math.min(prev + 5, 100);
       });
-    }, 90);
+    }, 70);
 
-    return () => clearInterval(progressTimer);
+    return () => window.clearInterval(progressTimer);
   }, [onFinish]);
 
   return (
-    <div
-      className={`fixed inset-0 z-[9999] flex items-center justify-center overflow-hidden bg-[#030303] text-white transition-all duration-700 ${
-        leaving ? "scale-110 opacity-0 blur-sm" : "scale-100 opacity-100 blur-0"
+    <motion.div
+      variants={container}
+      initial="hidden"
+      animate="visible"
+      className={`fixed inset-0 z-[9999] flex items-center justify-center overflow-hidden bg-[#020202] px-4 text-white transition-all duration-700 ${
+        leaving ? "scale-[1.04] opacity-0 blur-md" : "scale-100 opacity-100 blur-0"
       }`}
     >
-      <style>{`
-        @keyframes glitchShift {
-          0%, 100% { transform: translate(0); }
-          20% { transform: translate(-3px, 2px); }
-          40% { transform: translate(3px, -2px); }
-          60% { transform: translate(-2px, -1px); }
-          80% { transform: translate(2px, 1px); }
-        }
+      <div className="absolute inset-0 bg-[linear-gradient(rgba(255,255,255,0.07)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.07)_1px,transparent_1px)] bg-[size:56px_56px] opacity-[0.07] [mask-image:radial-gradient(circle_at_center,black,transparent_74%)]" />
+      <div className="absolute left-1/2 top-1/2 h-[680px] w-[680px] -translate-x-1/2 -translate-y-1/2 rounded-full bg-[radial-gradient(circle,rgba(204,0,0,0.22),transparent_64%)] blur-3xl" />
+      <div className="absolute inset-x-0 top-1/2 h-px bg-gradient-to-r from-transparent via-[var(--color-accent)]/35 to-transparent" />
 
-        @keyframes scanMove {
-          0% { transform: translateY(-100%); opacity: 0; }
-          10% { opacity: 1; }
-          100% { transform: translateY(100vh); opacity: 0; }
-        }
+      <motion.div
+        variants={item}
+        className="relative z-10 w-full max-w-[780px] overflow-hidden rounded-[2.6rem] border border-white/10 bg-white/[0.025] p-1 shadow-[0_34px_100px_rgba(0,0,0,0.75)] backdrop-blur-2xl"
+      >
+        <div className="relative overflow-hidden rounded-[2.35rem] border border-white/[0.06] bg-black/45">
+          <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_right,rgba(204,0,0,0.2),transparent_48%)]" />
+          <div className="absolute inset-0 bg-[linear-gradient(rgba(255,255,255,0.055)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.055)_1px,transparent_1px)] bg-[size:28px_28px] opacity-[0.08]" />
 
-        @keyframes floatParticle {
-          0% { transform: translateY(0) scale(1); opacity: 0; }
-          20% { opacity: 1; }
-          100% { transform: translateY(-140px) scale(0.2); opacity: 0; }
-        }
+          <div className="relative z-10 flex items-center justify-between border-b border-white/10 px-5 py-4">
+            <div className="flex gap-2">
+              <span className="h-2.5 w-2.5 rounded-full bg-[var(--color-accent)]" />
+              <span className="h-2.5 w-2.5 rounded-full bg-white/25" />
+              <span className="h-2.5 w-2.5 rounded-full bg-white/10" />
+            </div>
 
-        @keyframes pulseRed {
-          0%, 100% { opacity: .25; transform: scale(1); }
-          50% { opacity: .75; transform: scale(1.08); }
-        }
+            <div className="flex items-center gap-2 font-mono text-[9px] uppercase tracking-[0.24em] text-[#777]">
+              <Cpu className="h-3.5 w-3.5 text-[var(--color-accent)]" />
+              portfolio.boot
+            </div>
+          </div>
 
-        @keyframes rotateTarget {
-          from { transform: rotate(0deg); }
-          to { transform: rotate(360deg); }
-        }
-
-        @keyframes flicker {
-          0%, 100% { opacity: 1; }
-          8% { opacity: .35; }
-          10% { opacity: 1; }
-          44% { opacity: .65; }
-          46% { opacity: 1; }
-          70% { opacity: .45; }
-          72% { opacity: 1; }
-        }
-      `}</style>
-
-      <div className="absolute inset-0 opacity-[0.06] bg-[linear-gradient(to_right,#fff_1px,transparent_1px),linear-gradient(to_bottom,#fff_1px,transparent_1px)] bg-[size:64px_64px]" />
-      <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,rgba(190,0,0,0.24),transparent_42%)]" />
-      <div className="absolute inset-0 bg-[linear-gradient(90deg,transparent,rgba(255,0,0,0.08),transparent)] animate-pulse" />
-
-      <div className="absolute inset-x-0 top-0 h-24 bg-gradient-to-b from-red-950/25 to-transparent" />
-      <div className="absolute inset-x-0 bottom-0 h-24 bg-gradient-to-t from-red-950/25 to-transparent" />
-
-      <div
-        className="absolute left-0 top-0 h-24 w-full bg-red-700/10 blur-sm"
-        style={{ animation: "scanMove 2.2s linear infinite" }}
-      />
-
-      {particles.map((particle) => (
-        <span
-          key={particle.id}
-          className="absolute rounded-full bg-red-600 shadow-[0_0_18px_rgba(220,0,0,.9)]"
-          style={{
-            left: `${particle.left}%`,
-            top: `${particle.top}%`,
-            width: `${particle.size}px`,
-            height: `${particle.size}px`,
-            animation: `floatParticle ${particle.duration}s ease-in-out ${particle.delay}s infinite`,
-          }}
-        />
-      ))}
-
-      <div className="absolute left-8 top-8 h-28 w-28 border-l border-t border-red-700" />
-      <div className="absolute right-8 top-8 h-28 w-28 border-r border-t border-red-700" />
-      <div className="absolute bottom-8 left-8 h-28 w-28 border-b border-l border-red-700" />
-      <div className="absolute bottom-8 right-8 h-28 w-28 border-b border-r border-red-700" />
-
-      <div className="absolute right-[10%] top-[18%] h-40 w-40 opacity-40">
-        <div
-          className="absolute inset-0 rounded-full border border-red-700/70"
-          style={{ animation: "rotateTarget 8s linear infinite" }}
-        />
-        <div
-          className="absolute inset-6 rounded-full border border-white/15"
-          style={{ animation: "rotateTarget 5s linear infinite reverse" }}
-        />
-        <div className="absolute left-1/2 top-0 h-full w-px bg-red-800/50" />
-        <div className="absolute left-0 top-1/2 h-px w-full bg-red-800/50" />
-      </div>
-
-      <div className="absolute left-[8%] bottom-[18%] hidden text-[10px] uppercase tracking-[0.3em] text-white/25 md:block">
-        <p>BOOT_LOG_001: IDENTITY FOUND</p>
-        <p>BOOT_LOG_002: PORTFOLIO READY</p>
-        <p>BOOT_LOG_003: SYSTEM ONLINE</p>
-      </div>
-
-      <div className="relative z-10 w-full max-w-6xl px-8">
-        <div className="mb-6 flex items-center justify-between text-[10px] font-bold uppercase tracking-[0.45em] text-white/40">
-          <span>
-            <span className="text-red-600">●</span> System Identity Active
-          </span>
-          <span>IU_INTERFACE_V2</span>
-        </div>
-
-        <div className="relative border border-white/10 bg-white/[0.035] p-8 shadow-[0_0_80px_rgba(140,0,0,.22)] backdrop-blur-md md:p-12">
-          <div className="absolute -left-px -top-px h-12 w-12 border-l-2 border-t-2 border-red-700" />
-          <div className="absolute -right-px -top-px h-12 w-12 border-r-2 border-t-2 border-red-700" />
-          <div className="absolute -bottom-px -left-px h-12 w-12 border-b-2 border-l-2 border-red-700" />
-          <div className="absolute -bottom-px -right-px h-12 w-12 border-b-2 border-r-2 border-red-700" />
-
-          <p
-            className="mb-5 text-xs font-black uppercase tracking-[0.55em] text-red-600"
-            style={{ animation: "flicker 2s linear infinite" }}
-          >
-            Initializing Experience
-          </p>
-
-          <div className="relative">
-            <h1 className="text-6xl font-black uppercase leading-[0.82] tracking-[-0.08em] text-white md:text-8xl lg:text-[9rem]">
-              Welcome
-            </h1>
-
-            <h1
-              className="pointer-events-none absolute left-1 top-0 text-6xl font-black uppercase leading-[0.82] tracking-[-0.08em] text-red-700/70 md:text-8xl lg:text-[9rem]"
-              style={{ animation: "glitchShift .55s infinite" }}
+          <div className="relative z-10 px-6 py-10 text-center sm:px-10 sm:py-12">
+            <motion.div
+              variants={item}
+              className="mx-auto mb-8 flex h-20 w-20 items-center justify-center rounded-[1.7rem] border border-[var(--color-accent)]/35 bg-[var(--color-accent)]/10 shadow-[0_0_60px_rgba(204,0,0,0.2)]"
             >
-              Welcome
-            </h1>
-          </div>
+              <Braces className="h-8 w-8 text-[var(--color-accent)]" />
+            </motion.div>
 
-          <div className="relative mt-2">
-            <h2 className="text-5xl font-black uppercase leading-[0.85] tracking-[-0.08em] text-red-700 md:text-8xl lg:text-[8rem]">
-              Ichya.
-            </h2>
+            <motion.div variants={item}>
+              <p className="mb-4 font-mono text-[10px] uppercase tracking-[0.32em] text-[var(--color-accent)]">
+                Initializing Portfolio
+              </p>
 
-            <h2
-              className="pointer-events-none absolute left-[-4px] top-0 text-5xl font-black uppercase leading-[0.85] tracking-[-0.08em] text-white/15 md:text-8xl lg:text-[8rem]"
-              style={{ animation: "glitchShift .7s infinite reverse" }}
-            >
-              Ichya.
-            </h2>
-          </div>
+              <h1 className="font-display text-[clamp(2.8rem,7vw,5.8rem)] font-black uppercase leading-[0.85] tracking-[-0.08em]">
+                Ichya
+                <br />
+                <span className="text-transparent [-webkit-text-stroke:1px_rgba(255,255,255,0.75)] sm:[-webkit-text-stroke:2px_rgba(255,255,255,0.75)]">
+                  Ulumiddiin
+                </span>
+                <span className="text-[var(--color-accent)]">.</span>
+              </h1>
 
-          <p className="mt-8 max-w-2xl text-sm leading-relaxed text-white/55 md:text-base">
-            Loading brutalist portfolio interface, intelligent system modules,
-            project archives, and personal identity layer.
-          </p>
+              <p className="mx-auto mt-6 max-w-[520px] text-[14px] leading-[1.8] text-[#a7a7a7]">
+                Preparing interface, project archive, and system modules.
+              </p>
+            </motion.div>
 
-          <div className="mt-10">
-            <div className="mb-3 flex items-center justify-between text-[10px] font-bold uppercase tracking-[0.35em] text-white/40">
-              <span>Loading_Interface</span>
-              <span className="text-red-600">{progress}%</span>
-            </div>
+            <motion.div variants={item} className="mx-auto mt-9 max-w-[560px]">
+              <div className="mb-4 flex items-center justify-between font-mono text-[9px] uppercase tracking-[0.2em] text-[#777]">
+                <span>Loading Interface</span>
+                <span className="text-[var(--color-accent)]">{progress}%</span>
+              </div>
 
-            <div className="relative h-3 w-full overflow-hidden bg-white/10">
-              <div
-                className="h-full bg-red-700 transition-all duration-150"
-                style={{
-                  width: `${progress}%`,
-                  boxShadow: "0 0 24px rgba(220,0,0,.9)",
-                }}
-              />
+              <div className="h-1.5 overflow-hidden rounded-full bg-white/10">
+                <div
+                  className="h-full rounded-full bg-[var(--color-accent)] shadow-[0_0_24px_rgba(204,0,0,0.9)] transition-all duration-150"
+                  style={{ width: `${progress}%` }}
+                />
+              </div>
 
-              <div className="absolute inset-0 bg-[linear-gradient(90deg,transparent,rgba(255,255,255,.35),transparent)] animate-pulse" />
-            </div>
-          </div>
+              <div className="mt-6 grid grid-cols-2 gap-2 sm:grid-cols-4">
+                {bootItems.map(({ label, icon: Icon }, index) => {
+                  const completed = progress >= (index + 1) * 25;
 
-          <div className="mt-8 grid gap-3 text-[10px] uppercase tracking-[0.3em] text-white/35 md:grid-cols-4">
-            <div>
-              <span className="text-red-600">●</span> Active_Sector_01
-            </div>
-            <div>React System</div>
-            <div>AI Interface</div>
-            <div>Indonesia Node</div>
+                  return (
+                    <motion.div
+                      key={label}
+                      initial={{ opacity: 0, y: 10 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      transition={{ delay: 0.25 + index * 0.1, duration: 0.45, ease }}
+                      className={`rounded-2xl border px-3 py-3 transition-colors duration-300 ${
+                        completed
+                          ? "border-[var(--color-accent)]/40 bg-[var(--color-accent)]/10"
+                          : "border-white/10 bg-white/[0.025]"
+                      }`}
+                    >
+                      <div className="mb-2 flex justify-center">
+                        {completed ? (
+                          <Check className="h-4 w-4 text-[var(--color-accent)]" />
+                        ) : (
+                          <Icon className="h-4 w-4 text-[#777]" />
+                        )}
+                      </div>
+                      <p className="font-mono text-[8px] uppercase tracking-[0.16em] text-[#aaa]">
+                        {label}
+                      </p>
+                    </motion.div>
+                  );
+                })}
+              </div>
+            </motion.div>
           </div>
         </div>
-      </div>
-
-      <div
-        className="absolute inset-0 pointer-events-none opacity-[0.07]"
-        style={{
-          background:
-            "repeating-linear-gradient(0deg, transparent 0px, transparent 3px, white 4px)",
-        }}
-      />
-    </div>
+      </motion.div>
+    </motion.div>
   );
 }

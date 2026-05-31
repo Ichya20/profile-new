@@ -41,7 +41,7 @@ const projects: Project[] = [
     tech: ["Kotlin", "Jetpack Compose", "Firebase Firestore", "Android SDK"],
     stats: { Env: "Android", Database: "NoSQL", Status: "Stable" },
     icon: <Smartphone className="h-6 w-6" />,
-    link: "#",
+    link: "https://github.com/Ichya20/UTBK-SNBT",
   },
   {
     id: "PRJ-002",
@@ -52,7 +52,7 @@ const projects: Project[] = [
     tech: ["React 19", "TypeScript", "Laravel", "Python CV"],
     stats: { Accuracy: "99.2%", Latency: "<100ms", Model: "CNN" },
     icon: <ShieldCheck className="h-6 w-6" />,
-    link: "#",
+    link: "https://github.com/Ichya20/BioGate-Senitnel-V2",
   },
   {
     id: "PRJ-003",
@@ -309,6 +309,8 @@ export const Projects = () => {
                       <div className="mt-auto pt-12">
                         <a
                           href={activeProject.link}
+                          target="_blank"
+                          rel="noopener noreferrer"
                           className="group inline-flex items-center gap-3 rounded-2xl bg-[var(--color-accent)] px-7 py-4 font-mono text-[11px] font-bold uppercase tracking-[0.16em] text-white shadow-[0_18px_50px_rgba(204,0,0,0.24)] transition-colors duration-300 hover:bg-white hover:text-black"
                         >
                           Open Source Node
